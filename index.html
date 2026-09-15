@@ -961,6 +961,7 @@ const DEFAULT_STEPS = [
   {title:'Shot list', stage:'pre', shotlistForm:true},
   {title:'Lighting set ups', stage:'pre'},
   {title:'Equipment lists', stage:'pre'},
+  {title:'Tests', stage:'pre', testsForm:true},
   {title:'Shooting schedule of day', stage:'pre', scheduleForm:true},
   {title:'Shooting day', stage:'prod'},
   {title:'Filling in DIT', stage:'prod'},
@@ -1010,7 +1011,7 @@ function makeDefaultSteps(projectType){
       const isWeddingShotList = projectType === 'wedding' && (d.title||'').trim().toLowerCase() === 'shot list';
       const isWeddingBrief = projectType === 'wedding' && (d.title||'').trim().toLowerCase() === 'brief';
       return {
-        id: uid(), title: d.title, stage: d.stage, moodboard: !!d.moodboard, briefForm: !!d.briefForm, scriptForm: !!d.scriptForm, budgetForm: !!d.budgetForm, contractForm: !!d.contractForm, timelineForm: !!d.timelineForm, meetingsForm: !!d.meetingsForm, locationForm: !!d.locationForm, shotlistForm: !!d.shotlistForm, scheduleForm: !!d.scheduleForm, hidden: false,
+        id: uid(), title: d.title, stage: d.stage, moodboard: !!d.moodboard, briefForm: !!d.briefForm, scriptForm: !!d.scriptForm, budgetForm: !!d.budgetForm, contractForm: !!d.contractForm, testsForm: !!d.testsForm, timelineForm: !!d.timelineForm, meetingsForm: !!d.meetingsForm, locationForm: !!d.locationForm, shotlistForm: !!d.shotlistForm, scheduleForm: !!d.scheduleForm, hidden: false,
         description:'', who:'', date:'', progressNote:'', done:false,
         meetings: isWeddingMeetings ? [{ id: uid(), date:'', before: WEDDING_PREP_QUESTIONS.join('\n'), after:'' }] : [],
         shotListRows: isWeddingShotList ? buildWeddingShotListRows() : undefined,
@@ -1028,6 +1029,9 @@ function isBudgetStep(step){
 }
 function isContractStep(step){
   return !!step.contractForm || (step.title || '').trim().toLowerCase() === 'contract';
+}
+function isTestsStep(step){
+  return !!step.testsForm || (step.title || '').trim().toLowerCase() === 'tests';
 }
 function isScriptStep(step){
   return !!step.scriptForm || (step.title || '').trim().toLowerCase() === 'script';
@@ -1168,6 +1172,57 @@ let PROJECTS = [];
 let mbPasteHandler = null; // tracks the moodboard's paste listener so repeated visits don't stack duplicates
 
 function uid(){ return Math.random().toString(36).slice(2,10); }
+// contributor identity — who's making changes on this device/browser. Personal to this browser
+// (localStorage, not synced through Supabase), since there's no login system. Every save tags
+// the project with who last touched it, so a shared setup shows who changed what.
+const CONTRIBUTOR_KEY = 'contributor-name-v1';
+function getContributorName(){
+  try{ return localStorage.getItem(CONTRIBUTOR_KEY) || ''; }catch(e){ return ''; }
+}
+function setContributorName(name){
+  try{ localStorage.setItem(CONTRIBUTOR_KEY, name); }catch(e){}
+}
+function touchProject(proj){
+  proj.updatedAt = new Date().toISOString();
+  const name = getContributorName();
+  if(name) proj.lastEditedBy = name;
+}
+function touchStep(step){
+  step.updatedAt = new Date().toISOString();
+  const name = getContributorName();
+  if(name) step.lastEditedBy = name;
+}
+function promptContributorName(){
+  // a real in-app modal instead of window.prompt() — native browser dialogs are commonly blocked
+  // in sandboxed preview panes and fail completely silently there, which is why this used to
+  // appear to do nothing at all when tapped inside one
+  const current = getContributorName();
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg';
+  bg.innerHTML = `
+    <div class="modal">
+      <h3>Your name</h3>
+      <div style="font-size:14px; color:var(--text-dim); margin-bottom:10px;">This tags changes you make so others can see who edited what.</div>
+      <div class="field"><input type="text" id="contributorNameInput" placeholder="e.g. Owen" value="${esc(current)}"></div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="contributorCancel" style="flex:1;">Cancel</button>
+        <button class="btn primary" id="contributorSave" style="flex:1;">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(bg);
+  const input = bg.querySelector('#contributorNameInput');
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+  bg.querySelector('#contributorCancel').addEventListener('click', () => bg.remove());
+  bg.addEventListener('click', ev => { if(ev.target === bg) bg.remove(); });
+  const commit = () => {
+    setContributorName(input.value.trim());
+    bg.remove();
+    render();
+  };
+  bg.querySelector('#contributorSave').addEventListener('click', commit);
+  input.addEventListener('keydown', ev => { if(ev.key === 'Enter') commit(); });
+}
 function byId(id){ return PROJECTS.find(p => p.id === id); }
 function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 // grows a textarea to fit its content so the user never has to manually resize to see what's there
@@ -1352,7 +1407,7 @@ function applyWeddingPresetForNewDays(project, newDays){
       if(!exists) e.schedule.push({ id: uid(), location:'Used in Project', startDate:day, endDate:day, projectId:project.id, stepId:step.id });
     });
   });
-  step.updatedAt = new Date().toISOString();
+  touchStep(step);
   return true;
 }
 function collectShootDates(bg){
@@ -1698,7 +1753,7 @@ function clearNote(project, step){
     note: step.progressNote, notedAt: step.updatedAt, clearedAt: new Date().toISOString(),
   });
   step.progressNote = '';
-  project.updatedAt = new Date().toISOString();
+  touchProject(project);
 }
 
 // brings an older saved project up to date with steps that didn't exist when it was created —
@@ -1725,7 +1780,7 @@ function migrateProjectSteps(project){
     if(idx === -1){
       const newStep = {
         id: uid(), title: d.title, stage: d.stage, moodboard: !!d.moodboard, briefForm: !!d.briefForm, scriptForm: !!d.scriptForm,
-        budgetForm: !!d.budgetForm, contractForm: !!d.contractForm, timelineForm: !!d.timelineForm, meetingsForm: !!d.meetingsForm, locationForm: !!d.locationForm,
+        budgetForm: !!d.budgetForm, contractForm: !!d.contractForm, testsForm: !!d.testsForm, timelineForm: !!d.timelineForm, meetingsForm: !!d.meetingsForm, locationForm: !!d.locationForm,
         shotlistForm: !!d.shotlistForm, scheduleForm: !!d.scheduleForm, hidden:false,
         description:'', who:'', date:'', progressNote:'', done:false, meetings:[], updatedAt: now,
       };
@@ -1983,11 +2038,13 @@ async function render(){
 }
 
 function renderHeader(){
+  const name = getContributorName();
   return `
     <div class="topbar">
       <div class="wordmark">
         <div><h1>twolastnames project log</h1><span>production tracker</span></div>
       </div>
+      <button class="sq-btn" id="contributorBtn" aria-label="Set your name" title="${name ? 'Editing as ' + esc(name) : 'Set your name'}" style="font-family:var(--mono); font-size:11px; width:auto; padding:0 10px;">${name ? esc(name) : 'Set name'}</button>
       <button class="sq-btn" id="calBtn" aria-label="Project calendar" title="Project calendar">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
       </button>
@@ -2089,7 +2146,7 @@ function renderBoardProjectPicker(app){
       const p = byId(btn.dataset.boarddoneproj);
       if(!p) return;
       p.storyboardsDone = !p.storyboardsDone;
-      p.updatedAt = new Date().toISOString();
+      touchProject(p);
       const ok = await saveProjects();
       if(ok) renderBoardProjectPicker(app);
       else showToast('Save failed', true);
@@ -2294,7 +2351,7 @@ function renderBoardShotViewer(app, project, shotIdx){
   if(doneBtn) doneBtn.addEventListener('click', async () => {
     shot.done = !shot.done;
     shot.updatedAt = new Date().toISOString();
-    project.updatedAt = new Date().toISOString();
+    touchProject(project);
     await saveProjects();
     renderBoardShotViewer(app, project, shotIdx);
   });
@@ -2478,7 +2535,7 @@ function renderList(app, tab){
       const p = byId(btn.dataset.restoreproject);
       if(!p) return;
       delete p.deletedAt;
-      p.updatedAt = new Date().toISOString();
+      touchProject(p);
       const ok = await saveProjects();
       showToast(ok ? 'Project restored' : 'Restore failed', !ok);
       if(ok) renderList(app, tab);
@@ -2509,6 +2566,7 @@ function renderList(app, tab){
     });
   });
   document.getElementById('calBtn').addEventListener('click', () => goCalendar());
+  document.getElementById('contributorBtn').addEventListener('click', () => promptContributorName());
   const nb = document.getElementById('notifyBanner');
   if(nb) nb.addEventListener('click', () => goProject(nb.dataset.project));
   const nbAck = document.getElementById('notifyAck');
@@ -2544,7 +2602,7 @@ function cardHtml(p, tab){
         <div class="card-loc">${latest ? `<b>${esc(stageLabel(latest.stage))} · ${esc(latest.title || 'step')}:</b> ${esc(latest.progressNote)}` : 'No notes yet'}</div>
       </div>
       <div class="card-side">
-        <div class="card-time">${timeAgo(p.updatedAt)}</div>
+        <div class="card-time">${timeAgo(p.updatedAt)}${p.lastEditedBy ? ` · ${esc(p.lastEditedBy)}` : ''}</div>
       </div>
     </div>`;
 }
@@ -2556,6 +2614,7 @@ function renderNotFound(app){
     <button class="btn" id="backBtn">← Back to projects</button></div>`;
   document.getElementById('backBtn').addEventListener('click', () => goTab('current'));
   document.getElementById('calBtn').addEventListener('click', () => goCalendar());
+  document.getElementById('contributorBtn').addEventListener('click', () => promptContributorName());
 }
 
 const CAL_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -2652,7 +2711,7 @@ function renderDetail(app, p){
       <div class="section-label"><span>${stg.label} (${steps.length})</span></div>
       ${steps.length ? steps.map(s => `
         <div class="contents-row tracked ${s.done ? 'row-done' : ''} ${s.hidden ? 'row-hidden' : ''}" data-step="${s.id}">
-          <div class="name" style="${s.done ? 'color:var(--in);' : ''}">${esc(s.title || 'Untitled step')}${s.hidden ? ' <span class="tag-chip blank">Hidden</span>' : ''}<small>${[s.who, stepDeadline(s) ? fmtDate(stepDeadline(s)) : 'No date', s.progressNote ? truncate(s.progressNote, 44) : ''].filter(Boolean).map(esc).join(' · ')}</small></div>
+          <div class="name" style="${s.done ? 'color:var(--in);' : ''}">${esc(s.title || 'Untitled step')}${s.hidden ? ' <span class="tag-chip blank">Hidden</span>' : ''}<small>${[s.who, stepDeadline(s) ? fmtDate(stepDeadline(s)) : 'No date', s.progressNote ? truncate(s.progressNote, 44) : '', s.lastEditedBy ? `edited by ${s.lastEditedBy}` : ''].filter(Boolean).map(esc).join(' · ')}</small></div>
           <div class="step-actions">
             <button type="button" class="mo-btn" data-note="${s.id}" aria-label="Progress note" title="Progress note">
               <svg viewBox="0 0 24 24" width="15" height="15"><path d="M4 4.5h13l3 3v12h-16z" fill="var(--yellow)" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M17 4.5v3h3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
@@ -2690,6 +2749,7 @@ function renderDetail(app, p){
         ${p.client ? `<div class="client-line">Client: ${esc(p.client)}</div>` : ''}
         <div class="status-word ${dotClass}">${esc(stageText)}</div>
         <div style="font-family:var(--mono); font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:3px;">${esc(STATUSES.find(s => s.key === p.status).label)}</div>
+        <div style="font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:3px;">Last edited ${esc(timeAgo(p.updatedAt))}${p.lastEditedBy ? ` by ${esc(p.lastEditedBy)}` : ''}</div>
       </div>
     </div>
 
@@ -2772,6 +2832,7 @@ function renderDetail(app, p){
       else if(isScriptStep(step)) openScriptModal(p, step, true);
       else if(isBudgetStep(step)) openBudgetModal(p, step, true);
       else if(isContractStep(step)) openContractModal(p, step, true);
+      else if(isTestsStep(step)) openTestsModal(p, step, true);
       else if(isTimelineStep(step)) openTimelineModal(p, step.id, true);
       else if(isMeetingsStep(step)) openMeetingsModal(p, step, true);
       else if(isLocationStep(step)) openLocationModal(p, step, true);
@@ -2792,8 +2853,8 @@ function renderDetail(app, p){
       if(step.done && stepDeadline(step)) step.completedDate = new Date().toISOString().slice(0,10);
       else if(!step.done) delete step.completedDate;
       step.completionAcked = step.done ? false : true;
-      step.updatedAt = new Date().toISOString();
-      p.updatedAt = new Date().toISOString();
+      touchStep(step);
+      touchProject(p);
       const ok = await saveProjects();
       showToast(ok ? (step.done ? 'Marked done' : 'Marked not done') : 'Save failed', !ok);
       if(ok) renderDetail(app, p);
@@ -2842,7 +2903,7 @@ function renderDetail(app, p){
       const step = (p.steps||[]).find(s => s.id === el.dataset.completeack);
       if(!step) return;
       step.completionAcked = true;
-      p.updatedAt = new Date().toISOString();
+      touchProject(p);
       const ok = await saveProjects();
       if(ok) renderDetail(app, p);
     });
@@ -3136,8 +3197,8 @@ function openPerShotImagesModal(project, step, sideRight, keyFn, panelTitle){
     if(el.id === 'pimStart' || el.id === 'pimEnd'){
       step.startDate = bg.querySelector('#pimStart').value;
       step.endDate = bg.querySelector('#pimEnd').value;
-      step.updatedAt = new Date().toISOString();
-      project.updatedAt = new Date().toISOString();
+      touchStep(step);
+      touchProject(project);
       await saveProjects();
     }
   });
@@ -3250,7 +3311,7 @@ function matchStoryboardsByShotName(project, shots){
 
       if(createdAny){
         shotStep.updatedAt = new Date().toISOString();
-        project.updatedAt = new Date().toISOString();
+        touchProject(project);
         await saveProjects();
       }
       resolve({ matched, total: imageFiles.length, createdAny });
@@ -3935,8 +3996,8 @@ async function renderMoodboard(app, project, step){
     if(el.id === 'mbStart' || el.id === 'mbEnd'){
       step.startDate = document.getElementById('mbStart') ? document.getElementById('mbStart').value : step.startDate;
       step.endDate = document.getElementById('mbEnd') ? document.getElementById('mbEnd').value : step.endDate;
-      step.updatedAt = new Date().toISOString();
-      project.updatedAt = new Date().toISOString();
+      touchStep(step);
+      touchProject(project);
       await saveProjects();
     }
   });
@@ -4005,7 +4066,7 @@ function openEditProjectModal(p){
   bg.querySelector('#deleteProjectBtn').addEventListener('click', () => {
     openConfirmModal(`Move "${p.name}" to Trash? You can restore it from Trash later, or delete it permanently from there.`, async () => {
       p.deletedAt = new Date().toISOString();
-      p.updatedAt = new Date().toISOString();
+      touchProject(p);
       const ok = await saveProjects();
       bg.remove();
       showToast(ok ? 'Moved to Trash' : 'Failed to move to Trash', !ok);
@@ -4026,7 +4087,7 @@ function openEditProjectModal(p){
     const newDays = p.shootDates.filter(d => !oldShootDates.includes(d));
     const presetApplied = applyWeddingPresetForNewDays(p, newDays);
     p.deliveryDate = bg.querySelector('#editDelivery').value;
-    p.updatedAt = new Date().toISOString();
+    touchProject(p);
     const ok = await saveProjects();
     const ok2 = presetApplied ? await saveEntities() : true;
     bg.remove();
@@ -4082,7 +4143,7 @@ function openAddProjectModal(){
     const shootDates = collectShootDates(bg);
     const deliveryDate = bg.querySelector('#newDelivery').value;
     const now = new Date().toISOString();
-    const project = { id: uid(), name, client, status, projectType, otherTypeLabel, startDate, shootDates, deliveryDate, steps: makeDefaultSteps(projectType), updatedAt: now };
+    const project = { id: uid(), name, client, status, projectType, otherTypeLabel, startDate, shootDates, deliveryDate, steps: makeDefaultSteps(projectType), updatedAt: now, lastEditedBy: getContributorName() || undefined };
     PROJECTS.push(project);
     const presetApplied = applyWeddingPresetForNewDays(project, shootDates);
     const ok = await saveProjects();
@@ -4115,8 +4176,8 @@ function openNoteModal(project, step, sideRight){
   bg.addEventListener('click', ev => { if(ev.target === bg) bg.remove(); });
   bg.querySelector('#noteSave').addEventListener('click', async () => {
     step.progressNote = ta.value.trim();
-    step.updatedAt = new Date().toISOString();
-    project.updatedAt = new Date().toISOString();
+    touchStep(step);
+    touchProject(project);
     const ok = await saveProjects();
     bg.remove();
     showToast(ok ? 'Note saved' : 'Save failed', !ok);
@@ -4294,7 +4355,7 @@ async function applyAutoSchedule(project){
     if(dates){ s.startDate = dates[0]; s.endDate = dates[1]; }
   });
   if(plan.noDeliverySet) project.deliveryDate = plan.deliveryDate;
-  project.updatedAt = new Date().toISOString();
+  touchProject(project);
   const ok = await saveProjects();
   return { ok, noDeliverySet: plan.noDeliverySet, deliveryDate: plan.deliveryDate };
 }
@@ -4334,7 +4395,7 @@ async function applyPreProductionSchedule(project){
     const dates = plan.byTitle[key];
     if(dates){ s.startDate = dates[0]; s.endDate = dates[1]; }
   });
-  project.updatedAt = new Date().toISOString();
+  touchProject(project);
   const ok = await saveProjects();
   return { ok };
 }
@@ -4471,6 +4532,7 @@ function openTimelineModal(project, timelineStepId, sideRight){
     else if(isScriptStep(step)) openScriptModal(project, step, true);
     else if(isBudgetStep(step)) openBudgetModal(project, step, true);
     else if(isContractStep(step)) openContractModal(project, step, true);
+    else if(isTestsStep(step)) openTestsModal(project, step, true);
     else if(isMoodboardStep(step)) openMoodboardPanel(project, step, true);
     else openStepModal(project, step, null, true);
   }
@@ -4658,6 +4720,117 @@ function exportContractPdf(project, text){
   });
   doc.save(`${(project.name || 'project').replace(/[^a-z0-9]+/gi,'-')}-contract.pdf`);
 }
+function openTestsModal(project, step, sideRight){
+  closeSidePanels();
+  const tests = step.tests ? JSON.parse(JSON.stringify(step.tests)) : [];
+  let localDates = { startDate: step.startDate || '', endDate: step.endDate || '' };
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg' + (sideRight ? ' side-right' : '');
+
+  function testHtml(t, i){
+    return `
+      <div class="card-sub" style="padding:12px; margin-bottom:10px; position:relative;" data-testrow="${t.id}">
+        <button type="button" class="mo-btn" data-removetest="${t.id}" aria-label="Remove test" title="Remove test" style="position:absolute; top:8px; right:8px;">✕</button>
+        <label style="display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; letter-spacing:.03em; text-transform:uppercase; margin-bottom:8px;">
+          <input type="checkbox" data-testfield="enabled" data-testid="${t.id}" ${t.enabled !== false ? 'checked' : ''}> Test ${i+1}
+        </label>
+        <div class="field"><input type="text" placeholder="Test name" data-testfield="name" data-testid="${t.id}" value="${esc(t.name||'')}"></div>
+        <div class="field"><textarea placeholder="What this test covers…" data-testfield="description" data-testid="${t.id}">${esc(t.description||'')}</textarea></div>
+        <div class="field"><label>Test date</label>${dateFieldHtml('testdate-'+t.id, t.date)}</div>
+        <div class="field"><label>Outcome — what went well</label><textarea placeholder="What worked, held up…" data-testfield="outcomeWentWell" data-testid="${t.id}">${esc(t.outcomeWentWell||'')}</textarea></div>
+        <div class="field"><label>Outcome — what needs further testing</label><textarea placeholder="What's still unproven…" data-testfield="outcomeNeedsTesting" data-testid="${t.id}">${esc(t.outcomeNeedsTesting||'')}</textarea></div>
+      </div>`;
+  }
+
+  function paint(){
+    const prevModal = bg.querySelector('.modal');
+    const scrollTop = prevModal ? prevModal.scrollTop : 0;
+    const prevStartEl = bg.querySelector('#testsStart');
+    const prevEndEl = bg.querySelector('#testsEnd');
+    if(prevStartEl) localDates.startDate = prevStartEl.value;
+    if(prevEndEl) localDates.endDate = prevEndEl.value;
+    bg.innerHTML = `
+      <div class="modal">
+        <h3>Tests</h3>
+        ${stepDateRangeFieldHtml(localDates, 'tests')}
+        <div id="testsList">${tests.length ? tests.map(testHtml).join('') : '<p class="empty small">No tests added yet.</p>'}</div>
+        <button type="button" class="btn small" id="testsAdd" style="width:100%; margin-bottom:14px;">+ Add test</button>
+        <div class="modal-actions">
+          <button class="btn ghost" id="testsCancel" style="flex:1;">Cancel</button>
+          <button class="btn primary" id="testsSave" style="flex:1;">Save</button>
+        </div>
+      </div>`;
+    const newModal = bg.querySelector('.modal');
+    if(newModal) newModal.scrollTop = scrollTop;
+    wire();
+  }
+  function wire(){
+    bg.querySelector('#testsCancel').addEventListener('click', () => bg.remove());
+    bg.querySelector('#testsAdd').addEventListener('click', () => {
+      tests.push({ id: uid(), enabled: true, name:'', description:'', date:'', outcomeWentWell:'', outcomeNeedsTesting:'' });
+      paint();
+    });
+    bg.querySelectorAll('[data-removetest]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = tests.findIndex(t => t.id === btn.dataset.removetest);
+        if(idx !== -1) tests.splice(idx, 1);
+        paint();
+      });
+    });
+    bg.querySelectorAll('[data-testfield]').forEach(el => {
+      const evName = el.type === 'checkbox' ? 'change' : 'blur';
+      el.addEventListener(evName, () => {
+        const t = tests.find(x => x.id === el.dataset.testid);
+        if(!t) return;
+        t[el.dataset.testfield] = el.type === 'checkbox' ? el.checked : el.value;
+      });
+    });
+    autoGrowAll(bg);
+    bg.querySelector('#testsSave').addEventListener('click', async () => {
+      // capture any in-progress edits the blur listeners above haven't caught yet
+      bg.querySelectorAll('[data-testfield]').forEach(el => {
+        const t = tests.find(x => x.id === el.dataset.testid);
+        if(!t) return;
+        t[el.dataset.testfield] = el.type === 'checkbox' ? el.checked : el.value;
+      });
+      step.tests = tests;
+      step.startDate = bg.querySelector('#testsStart').value;
+      step.endDate = bg.querySelector('#testsEnd').value;
+      touchStep(step);
+      touchProject(project);
+      const ok = await saveProjects();
+      bg.remove();
+      showToast(ok ? 'Tests saved' : 'Save failed', !ok);
+      if(ok) render();
+    });
+  }
+  bg.addEventListener('click', ev => {
+    if(ev.target === bg){ bg.remove(); return; }
+    const trigger = ev.target.closest('.dfield');
+    if(!trigger) return;
+    const rangeWrap = trigger.closest('[data-rangepicker="tests"]');
+    if(rangeWrap){
+      const triggers = rangeWrap.querySelectorAll('.dfield');
+      openDateRangePicker(triggers[0], triggers[1]);
+      return;
+    }
+    // per-test date fields aren't in the range wrapper — single date picker, updating that
+    // test's own date on commit
+    const testRow = trigger.closest('[data-testrow]');
+    if(testRow){
+      openDatePicker(trigger);
+      const hidden = trigger.querySelector('input[type=hidden]');
+      if(hidden){
+        hidden.addEventListener('change', () => {
+          const t = tests.find(x => x.id === testRow.dataset.testrow);
+          if(t) t.date = hidden.value;
+        }, { once:true });
+      }
+    }
+  });
+  presentPanel(bg, step.id);
+  paint();
+}
 function openContractModal(project, step, sideRight){
   closeSidePanels();
   const c = step.contractData || {};
@@ -4720,8 +4893,8 @@ function openContractModal(project, step, sideRight){
       balancePaidDate: bg.querySelector('#conBalancePaid').value,
       text: bg.querySelector('#conText').value,
     };
-    step.updatedAt = new Date().toISOString();
-    project.updatedAt = new Date().toISOString();
+    touchStep(step);
+    touchProject(project);
     const ok = await saveProjects();
     bg.remove();
     showToast(ok ? 'Contract saved' : 'Save failed', !ok);
@@ -5064,7 +5237,7 @@ function openBudgetModal(project, step, sideRight){
       step.budget = budget;
       step.startDate = bg.querySelector('#bgStart').value;
       step.endDate = bg.querySelector('#bgEnd').value;
-      step.updatedAt = new Date().toISOString();
+      touchStep(step);
       // keep the Brief's Fees text in sync automatically whenever the Budget is saved
       const briefStep = (project.steps || []).find(isBriefStep);
       if(briefStep){
@@ -5075,7 +5248,7 @@ function openBudgetModal(project, step, sideRight){
           briefStep.updatedAt = new Date().toISOString();
         }
       }
-      project.updatedAt = new Date().toISOString();
+      touchProject(project);
       const ok = await saveProjects();
       bg.remove();
       showToast(ok ? 'Budget saved' : 'Save failed', !ok);
@@ -5149,8 +5322,8 @@ function openScriptModal(project, step, sideRight){
   bg.querySelector('#scSave').addEventListener('click', async () => {
     step.scriptHtml = editor.innerHTML;
     step.scriptText = editor.innerText; // plain-text mirror, kept for anything that only reads scriptText
-    step.updatedAt = new Date().toISOString();
-    project.updatedAt = new Date().toISOString();
+    touchStep(step);
+    touchProject(project);
     const ok = await saveProjects();
     bg.remove();
     showToast(ok ? 'Script saved' : 'Save failed', !ok);
@@ -5297,8 +5470,8 @@ function openLocationModal(project, step, sideRight){
       step.locationRows = rows;
       step.startDate = localDates.startDate;
       step.endDate = localDates.endDate;
-      step.updatedAt = new Date().toISOString();
-      project.updatedAt = new Date().toISOString();
+      touchStep(step);
+      touchProject(project);
       const ok = await saveProjects();
       bg.remove();
       showToast(ok ? ('Location scout saved' + (propagated ? ` — ${propagated} shot${propagated===1?'':'s'} updated` : '')) : 'Save failed', !ok);
@@ -5812,8 +5985,8 @@ function openShotListModal(project, step, sideRight){
       step.shotListRows = rows;
       step.startDate = bg.querySelector('#slStart').value;
       step.endDate = bg.querySelector('#slEnd').value;
-      step.updatedAt = new Date().toISOString();
-      project.updatedAt = new Date().toISOString();
+      touchStep(step);
+      touchProject(project);
       const ok = await saveProjects();
       bg.remove();
       showToast(ok ? 'Shot list saved' : 'Save failed', !ok);
@@ -6147,8 +6320,8 @@ function openEquipmentListsModal(project, step, sideRight){
       step.equipmentByDay = byDay;
       step.startDate = bg.querySelector('#eqlStart').value;
       step.endDate = bg.querySelector('#eqlEnd').value;
-      step.updatedAt = new Date().toISOString();
-      project.updatedAt = new Date().toISOString();
+      touchStep(step);
+      touchProject(project);
 
       // clear any "Used in Project" tags this exact project+step previously set, then re-apply
       // fresh ones for whatever's currently selected
@@ -6512,8 +6685,8 @@ function openScheduleModal(project, step, sideRight){
   // every edit in this panel saves immediately — no separate Save step to remember
   async function persistSchedule(){
     step.scheduleDays = days;
-    step.updatedAt = new Date().toISOString();
-    project.updatedAt = new Date().toISOString();
+    touchStep(step);
+    touchProject(project);
     const ok = await saveProjects();
     if(!ok) showToast('Save failed — try again', true);
   }
@@ -6813,8 +6986,8 @@ function openMeetingsModal(project, step, sideRight){
       step.meetings = meetings;
       step.startDate = localDates.startDate;
       step.endDate = localDates.endDate;
-      step.updatedAt = new Date().toISOString();
-      project.updatedAt = new Date().toISOString();
+      touchStep(step);
+      touchProject(project);
       const ok = await saveProjects();
       bg.remove();
       showToast(ok ? 'Meetings saved' : 'Save failed', !ok);
@@ -6894,8 +7067,8 @@ function openBriefModal(project, step, sideRight){
     };
     step.startDate = bg.querySelector('#brStart').value;
     step.endDate = bg.querySelector('#brEnd').value;
-    step.updatedAt = new Date().toISOString();
-    project.updatedAt = new Date().toISOString();
+    touchStep(step);
+    touchProject(project);
     const ok = await saveProjects();
     bg.remove();
     showToast(ok ? 'Brief saved' : 'Save failed', !ok);
@@ -6958,7 +7131,7 @@ function openStepModal(project, step, presetStage, sideRight){
     delBtn.addEventListener('click', () => {
       openConfirmModal(`Delete step "${step.title || 'Untitled step'}"?`, async () => {
         project.steps = project.steps.filter(s => s.id !== step.id);
-        project.updatedAt = new Date().toISOString();
+        touchProject(project);
         const ok = await saveProjects();
         bg.remove();
         showToast(ok ? 'Step deleted' : 'Delete failed', !ok);
@@ -7956,8 +8129,8 @@ function openAssignProjectModal(entity){
         if(!step.equipmentByDay[day]) step.equipmentByDay[day] = [];
         if(!step.equipmentByDay[day].some(x => normalizeEquipEntry(x).id === entity.id)) step.equipmentByDay[day].push({ id: entity.id, qty: 1 });
       });
-      step.updatedAt = new Date().toISOString();
-      project.updatedAt = new Date().toISOString();
+      touchStep(step);
+      touchProject(project);
 
       const ok1 = await saveEntities();
       const ok2 = await saveProjects();
@@ -8305,6 +8478,7 @@ Sarah steps outside. The neighbourhood is quiet, waking up. She takes a deep bre
       <div id="diagResults" style="text-align:left; font-family:var(--mono); font-size:11px; white-space:pre-wrap; max-width:420px; margin:0 auto 14px; padding:10px; background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); display:none;"></div>
       <button class="btn danger small" id="resetLoadBtn">Start fresh (clears saved data)</button></div>`;
     document.getElementById('calBtn').addEventListener('click', () => goCalendar());
+  document.getElementById('contributorBtn').addEventListener('click', () => promptContributorName());
     document.getElementById('retryLoadBtn').addEventListener('click', () => location.reload());
     document.getElementById('diagLoadBtn').addEventListener('click', async () => {
       const out = document.getElementById('diagResults');
