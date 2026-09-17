@@ -7,17 +7,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Archivo:wght@500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
 
   :root{
-    --bg: #ffffff;
-    --panel: #f3f3f2;
-    --panel-2: #e8e8e6;
-    --line: #dcdcda;
+    --bg: #fafafa;
+    --panel: #ffffff;
+    --panel-2: #f0f0f0;
+    --line: #e4e4e4;
     --text: #17181a;
     --text-dim: #6c6f70;
     --mono: 'IBM Plex Mono', monospace;
-    --display: 'Archivo', sans-serif;
+    --display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --in: #275D38;
     --out: #D6001C;
     --amber: #009CDE;
@@ -40,6 +40,17 @@
     body.has-side-panel #app{max-width:640px; margin-left:auto; margin-right:auto;}
   }
 
+  @media (max-width:560px){
+    .topbar-nav{
+      position:fixed; left:16px; right:16px; bottom:calc(14px + env(safe-area-inset-bottom, 0));
+      margin-left:0; z-index:20; background:var(--panel); border:1px solid var(--line);
+      border-radius:999px; padding:5px; box-shadow:0 4px 18px rgba(0,0,0,0.08);
+      display:flex; justify-content:space-between;
+    }
+    .topbar-nav .nav-pill{flex:1; text-align:center;}
+    body{padding-bottom:76px;}
+  }
+
   .topbar{
     display:flex; align-items:center; justify-content:space-between;
     padding:20px 0 14px 0;
@@ -48,12 +59,23 @@
     position: sticky; top:0; background:var(--bg); z-index: 5;
   }
   .wordmark{display:flex; align-items:center; gap:10px;}
-  .wordmark h1{font-size:17px; letter-spacing:0.14em; margin:0; font-weight:800; text-transform:uppercase;}
-  .wordmark span{color:var(--text-dim); font-size:11px; display:block; letter-spacing:0.08em; font-family:var(--mono); margin-top:2px;}
+  .wordmark h1{font-size:17px; letter-spacing:-0.01em; margin:0; font-weight:700; text-transform:none;}
+  .wordmark span{display:none;}
+  .topbar-nav{display:flex; align-items:center; gap:4px; margin-left:auto;}
+  .nav-pill{
+    background:none; border:none; padding:7px 14px; cursor:pointer; border-radius:999px;
+    font-family:var(--display); font-size:13.5px; color:var(--text-dim); font-weight:500;
+  }
+  .nav-pill.active{background:var(--panel); color:var(--text); font-weight:600; box-shadow:0 0 0 1px var(--line);}
+  .topbar-calbtn{
+    width:34px; height:34px; border-radius:50%; border:none; background:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; color:var(--text); margin-left:6px; flex:none;
+  }
+  .topbar-calbtn:active{background:var(--panel-2);}
 
-  .notify{display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--amber); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px; cursor:pointer;}
+  .notify{display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--text); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px; cursor:pointer;}
   .notify:active{background:var(--panel-2);}
-  .notify-dot{width:8px;height:8px;border-radius:50%; background:var(--amber); flex:none; box-shadow:0 0 7px 1px rgba(0,156,222,0.5);}
+  .notify-dot{width:8px;height:8px;border-radius:50%; background:var(--text); flex:none;}
   .notify-body{flex:1; min-width:0;}
   .notify-title{font-size:13px; font-weight:700;}
   .notify-text{font-size:12.5px; color:var(--text-dim); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
@@ -69,6 +91,7 @@
     background:var(--panel); border:1px solid var(--line); color:var(--text);
     border-radius: var(--radius); padding:11px 12px; font-family:var(--display); font-size:14px; width:100%;
   }
+  input[type=search]{border-radius:999px; padding:11px 18px;}
   textarea{resize:vertical; min-height:44px; overflow:hidden;}
   .script-textarea{
     font-family:var(--mono); font-size:12.5px; line-height:1.6; min-height:400px; max-height:55vh;
@@ -235,7 +258,10 @@
     cursor:pointer; white-space:nowrap;
   }
   .btn:active{transform:scale(0.98);}
-  .btn.primary{background:var(--amber); color:#181818; border-color:var(--amber);}
+  .btn.primary{background:#111; color:#fff; border-color:#111;}
+  .round-add{width:44px; height:44px; padding:0; border-radius:50%; font-size:22px; line-height:1; flex:none;}
+  .pill-outline{background:var(--panel); border:1px solid var(--line); border-radius:999px; color:var(--text); text-transform:lowercase;}
+  .pill-outline.active{background:var(--text); color:#fff; border-color:var(--text);}
   .btn.ghost{background:transparent;}
   .btn.full{width:100%;}
   .btn.danger{color:var(--out); border-color:var(--out); background:transparent;}
@@ -253,14 +279,24 @@
   }
   .card:active{background:var(--panel-2);}
   .dot{width:10px;height:10px;border-radius:50%; flex:none; margin-top:4px;}
-  .dot.pre{background:var(--pre); box-shadow:0 0 7px 1px rgba(201,130,30,0.55);}
-  .dot.prod{background:var(--out); box-shadow:0 0 7px 1px rgba(214,0,28,0.55);}
-  .dot.post{background:var(--amber); box-shadow:0 0 7px 1px rgba(0,156,222,0.55);}
-  .dot.wrap{background:var(--in); box-shadow:0 0 7px 1px rgba(39,93,56,0.55);}
-  .dot.wip{background:var(--yellow); box-shadow:0 0 7px 1px rgba(217,164,4,0.55);}
+  .dot.pre{background:var(--pre);}
+  .dot.prod{background:var(--out);}
+  .dot.post{background:var(--amber);}
+  .dot.wrap{background:var(--in);}
+  .dot.wip{background:var(--yellow);}
   .dot.none{background:var(--text-dim); box-shadow:none;}
   .dot.blank{background:transparent; box-shadow: inset 0 0 0 2px var(--text-dim);}
   .card-body{flex:1; min-width:0;}
+  .table-row{
+    display:flex; align-items:flex-start; gap:12px; padding:14px 0;
+    border-bottom:1px solid var(--line); cursor:pointer;
+  }
+  .table-row:last-child{border-bottom:none;}
+  .table-row .dot{margin-top:7px;}
+  .table-row-body{flex:1; min-width:0;}
+  .table-row-name{font-size:16px; font-weight:600; font-family:var(--display);}
+  .table-row-meta{font-size:13px; color:var(--text-dim); font-family:var(--display); margin-top:2px; text-transform:lowercase;}
+  .table-row-time{font-family:var(--display); font-size:13px; color:var(--text-dim); flex:none; padding-top:2px;}
   .card-name{font-weight:700; font-size:15px; margin-bottom:3px; display:flex; align-items:center; gap:6px;}
   .card-meta{font-family:var(--mono); font-size:12px; color:var(--text-dim); display:flex; gap:8px; flex-wrap:wrap;}
   .tag-chip{background:var(--panel-2); border-radius:5px; padding:1px 6px; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;}
@@ -322,7 +358,7 @@
   .stat-value.unset{color:var(--text-dim); font-weight:400; font-size:14px;}
   .stat-date{font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-top:2px;}
 
-  .section-label{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-dim); margin:22px 0 10px 0; display:flex; justify-content:space-between; align-items:center;}
+  .section-label{font-family:var(--display); font-size:15px; font-weight:600; color:var(--text); margin:22px 0 10px 0; display:flex; justify-content:space-between; align-items:center;}
   .current-loc-box{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px; font-size:15px; font-weight:600; line-height:1.4;}
   .current-loc-box .ts{font-family:var(--mono); font-weight:400; font-size:11px; color:var(--text-dim); margin-top:6px;}
 
@@ -598,7 +634,7 @@
 
   /* ===== Equipment tracker (merged) ===== */
 
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Archivo:wght@500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
 
   .topbar{
     display:flex; align-items:center; justify-content:space-between;
@@ -608,8 +644,19 @@
     position: sticky; top:0; background:var(--bg); z-index: 5;
   }
   .wordmark{display:flex; align-items:center; gap:10px;}
-  .wordmark h1{font-size:17px; letter-spacing:0.14em; margin:0; font-weight:800; text-transform:uppercase;}
-  .wordmark span{color:var(--text-dim); font-size:11px; display:block; letter-spacing:0.08em; font-family:var(--mono); margin-top:2px;}
+  .wordmark h1{font-size:17px; letter-spacing:-0.01em; margin:0; font-weight:700; text-transform:none;}
+  .wordmark span{display:none;}
+  .topbar-nav{display:flex; align-items:center; gap:4px; margin-left:auto;}
+  .nav-pill{
+    background:none; border:none; padding:7px 14px; cursor:pointer; border-radius:999px;
+    font-family:var(--display); font-size:13.5px; color:var(--text-dim); font-weight:500;
+  }
+  .nav-pill.active{background:var(--panel); color:var(--text); font-weight:600; box-shadow:0 0 0 1px var(--line);}
+  .topbar-calbtn{
+    width:34px; height:34px; border-radius:50%; border:none; background:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; color:var(--text); margin-left:6px; flex:none;
+  }
+  .topbar-calbtn:active{background:var(--panel-2);}
   .counts{font-family:var(--mono); font-size:12px; color:var(--text-dim); text-align:right; line-height:1.5;}
   .counts b.in{color:var(--in);} .counts b.out{color:var(--out);} .counts b.pre{color:var(--pre);}
 
@@ -618,6 +665,7 @@
     background:var(--panel); border:1px solid var(--line); color:var(--text);
     border-radius: var(--radius); padding:11px 12px; font-family:var(--display); font-size:14px; width:100%;
   }
+  input[type=search]{border-radius:999px; padding:11px 18px;}
   input:focus, select:focus, textarea:focus{outline:2px solid var(--amber); outline-offset:1px;}
   .btn{
     background:var(--panel-2); border:1px solid var(--line); color:var(--text);
@@ -625,7 +673,10 @@
     cursor:pointer; white-space:nowrap;
   }
   .btn:active{transform:scale(0.98);}
-  .btn.primary{background:var(--amber); color:#181818; border-color:var(--amber);}
+  .btn.primary{background:#111; color:#fff; border-color:#111;}
+  .round-add{width:44px; height:44px; padding:0; border-radius:50%; font-size:22px; line-height:1; flex:none;}
+  .pill-outline{background:var(--panel); border:1px solid var(--line); border-radius:999px; color:var(--text); text-transform:lowercase;}
+  .pill-outline.active{background:var(--text); color:#fff; border-color:var(--text);}
   .btn.ghost{background:transparent;}
   .btn.full{width:100%;}
   .btn.danger{color:var(--out); border-color:var(--out); background:transparent;}
@@ -637,9 +688,19 @@
   }
   .card:active{background:var(--panel-2);}
   .dot{width:10px;height:10px;border-radius:50%; flex:none;}
-  .dot.in{background:var(--in); box-shadow:0 0 7px 1px rgba(39,93,56,0.55);}
-  .dot.out{background:var(--out); box-shadow:0 0 7px 1px rgba(214,0,28,0.55);}
+  .dot.in{background:var(--in);}
+  .dot.out{background:var(--out);}
   .card-body{flex:1; min-width:0;}
+  .table-row{
+    display:flex; align-items:flex-start; gap:12px; padding:14px 0;
+    border-bottom:1px solid var(--line); cursor:pointer;
+  }
+  .table-row:last-child{border-bottom:none;}
+  .table-row .dot{margin-top:7px;}
+  .table-row-body{flex:1; min-width:0;}
+  .table-row-name{font-size:16px; font-weight:600; font-family:var(--display);}
+  .table-row-meta{font-size:13px; color:var(--text-dim); font-family:var(--display); margin-top:2px; text-transform:lowercase;}
+  .table-row-time{font-family:var(--display); font-size:13px; color:var(--text-dim); flex:none; padding-top:2px;}
   .card-name{font-weight:700; font-size:15px; margin-bottom:3px; display:flex; align-items:center; gap:6px;}
   .card-meta{font-family:var(--mono); font-size:12px; color:var(--text-dim); display:flex; gap:8px; flex-wrap:wrap;}
   .tag-chip{background:var(--panel-2); border-radius:5px; padding:1px 6px; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;}
@@ -669,7 +730,7 @@
   .detail-title .status-word{font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase;}
   .status-word.in{color:var(--in);} .status-word.out{color:var(--out);}
 
-  .section-label{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-dim); margin:22px 0 10px 0; display:flex; justify-content:space-between; align-items:center;}
+  .section-label{font-family:var(--display); font-size:15px; font-weight:600; color:var(--text); margin:22px 0 10px 0; display:flex; justify-content:space-between; align-items:center;}
   .current-loc-box{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px; font-size:16px; font-weight:600;}
   .current-loc-box .ts{font-family:var(--mono); font-weight:400; font-size:11px; color:var(--text-dim); margin-top:6px;}
 
@@ -777,6 +838,8 @@
   .board-mini-row.current{border-color:var(--amber); background:var(--panel-2);}
   .board-mini-row .ts{display:block; font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin-top:2px;}
   .preset-row{display:flex; gap:8px; margin-bottom:16px;}
+  .loc-filter-row{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .loc-filter-pill{display:flex; align-items:center; gap:6px;}
 
   .field-check{display:flex; align-items:center; gap:8px; font-size:13px; margin-top:4px;}
   .modal-actions{display:flex; gap:8px; margin-top:16px;}
@@ -2037,15 +2100,21 @@ async function render(){
   }
 }
 
-function renderHeader(){
+function renderHeader(activeApp){
+  activeApp = activeApp || 'projects';
   const name = getContributorName();
   return `
     <div class="topbar">
       <div class="wordmark">
-        <div><h1>twolastnames project log</h1><span>production tracker</span></div>
+        <div><h1>twolastnames</h1></div>
       </div>
-      <button class="sq-btn" id="contributorBtn" aria-label="Set your name" title="${name ? 'Editing as ' + esc(name) : 'Set your name'}" style="font-family:var(--mono); font-size:11px; width:auto; padding:0 10px;">${name ? esc(name) : 'Set name'}</button>
-      <button class="sq-btn" id="calBtn" aria-label="Project calendar" title="Project calendar">
+      <div class="topbar-nav">
+        <button class="nav-pill ${activeApp==='projects'?'active':''}" data-tab="current">projects</button>
+        <button class="nav-pill ${activeApp==='equipment'?'active':''}" data-app="equipment">equipment</button>
+        <button class="nav-pill ${activeApp==='storyboard'?'active':''}" data-app="storyboard">storyboards</button>
+      </div>
+      <button class="sq-btn" id="contributorBtn" aria-label="Set your name" title="${name ? 'Editing as ' + esc(name) : 'Set your name'}" style="font-family:var(--display); font-size:12.5px; width:auto; padding:0 10px; margin-left:8px;">${name ? esc(name) : 'Set name'}</button>
+      <button class="topbar-calbtn" id="calBtn" aria-label="Project calendar" title="Project calendar">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
       </button>
     </div>`;
@@ -2076,7 +2145,7 @@ function renderBottomNav(activeApp){
     </div>`;
 }
 function wireNavtabs(container){
-  container.querySelectorAll('.navtab').forEach(btn => {
+  container.querySelectorAll('.navtab, .nav-pill').forEach(btn => {
     btn.addEventListener('click', () => {
       if(btn.dataset.app === 'equipment') location.hash = 'equip';
       else if(btn.dataset.app === 'storyboard') location.hash = 'board';
@@ -2124,9 +2193,7 @@ function renderBoardProjectPicker(app){
       <button type="button" class="dot-btn" data-boarddoneproj="${p.id}" title="Mark storyboards done" aria-label="Mark storyboards done"><span class="dot ${p.storyboardsDone?'wrap':'blank'}" style="margin-top:0;"></span></button>
     </div>`;
   app.innerHTML = `
-    <div class="topbar">
-      <div class="wordmark"><div><h1>Storyboards</h1><span>on-set viewer</span></div></div>
-    </div>
+    ${renderHeader('storyboard')}
     <div class="section-label"><span>Choose a project</span></div>
     ${active.length ? active.map(cardHtml).join('') : `<p class="empty small">No current or upcoming projects yet.</p>`}
     ${done.length ? `
@@ -2135,7 +2202,6 @@ function renderBoardProjectPicker(app){
         <div class="dropdown-body">${done.map(cardHtml).join('')}</div>
       </details>
     ` : ''}
-    ${renderBottomNav('storyboard')}
   `;
   app.querySelectorAll('[data-openboard]').forEach(el => {
     el.addEventListener('click', () => goBoardProject(el.dataset.openboard, 0));
@@ -2153,6 +2219,8 @@ function renderBoardProjectPicker(app){
     });
   });
   wireNavtabs(app);
+  document.getElementById('contributorBtn').addEventListener('click', () => promptContributorName());
+  document.getElementById('calBtn').addEventListener('click', () => goCalendar());
 }
 const BOARD_ICONS = {
   script: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/><path d="M9 13h6M9 17h6M9 9h2"/></svg>',
@@ -2236,13 +2304,14 @@ function renderBoardShotViewer(app, project, shotIdx){
   const allShots = (shotStep && shotStep.shotListRows) ? shotStep.shotListRows : [];
   if(!allShots.length){
     app.innerHTML = `
-      <div class="topbar"><div class="wordmark"><div><h1>${esc(project.name)}</h1><span>storyboards</span></div></div></div>
+      ${renderHeader('storyboard')}
       <button class="back" id="boardBack">← Projects</button>
       <p class="empty small">This project's Shot list is empty — add shots there first.</p>
-      ${renderBottomNav('storyboard')}
     `;
     document.getElementById('boardBack').addEventListener('click', goBoardList);
     wireNavtabs(app);
+    document.getElementById('contributorBtn').addEventListener('click', () => promptContributorName());
+    document.getElementById('calBtn').addEventListener('click', () => goCalendar());
     return;
   }
   allShots.forEach(r => { if(!r.id) r.id = uid(); });
@@ -2471,13 +2540,13 @@ function renderList(app, tab){
   const allShown = [...current, ...upcoming, ...finished];
 
   app.innerHTML = `
-    ${renderHeader()}
+    ${renderHeader('projects')}
     ${renderNotifyBanner()}
     <div class="toolbar">
-      <button class="btn primary" id="addBtn">+ New Project</button>
       ${searchOpen
         ? `<input type="search" id="searchBox" placeholder="Search projects…" value="${esc(app.dataset.search||'')}">`
         : `<button class="sq-btn" id="searchToggle" aria-label="Search">&#128269;</button>`}
+      <button class="btn primary round-add" id="addBtn" aria-label="New project" title="New project">+</button>
     </div>
     <div class="section-label"><span>Projects (${current.length})</span></div>
     ${current.length ? current.map(p => cardHtml(p, 'current')).join('') : `<div class="card-sub" style="margin-bottom:14px; font-family:var(--mono); font-size:11px; color:var(--text-dim);">Nothing in progress — start a project.</div>`}
@@ -2504,7 +2573,6 @@ function renderList(app, tab){
       </div>
     </details>
     ` : ''}
-    ${renderBottomNav('projects')}
   `;
 
   const searchToggle = document.getElementById('searchToggle');
@@ -7598,11 +7666,23 @@ function renderGearCalendar(app){
 function gearRenderList(app){
   const search = (app.dataset.search || '').toLowerCase();
   const preset = app.dataset.preset || '';
+  const locFilter = app.dataset.locFilter || '';
   const presetNames = GEAR_PRESETS[preset] || null;
+  const fullList = topLevel();
+  const studioCount = fullList.filter(i => effectiveLocation(i) === HOME_BASE).length;
+  const rentalCount = fullList.filter(i => effectiveLocation(i) === 'Rental').length;
+  const projectCount = fullList.filter(i => effectiveLocation(i) === 'Used in Project').length;
+  const locMatches = (i) => {
+    if(!locFilter) return true;
+    if(locFilter === 'studio') return effectiveLocation(i) === HOME_BASE;
+    if(locFilter === 'rental') return effectiveLocation(i) === 'Rental';
+    if(locFilter === 'project') return effectiveLocation(i) === 'Used in Project';
+    return true;
+  };
   // presets can name items bundled inside a crate (not "top level"), so search everything rather
   // than just tracked/top-level entities when a preset is active
   const base = presetNames ? ENTITIES.filter(e => presetNames.includes(e.name)) : topLevel();
-  const all = base.filter(i => !search || i.name.toLowerCase().includes(search) || i.category.toLowerCase().includes(search));
+  const all = base.filter(i => (!search || i.name.toLowerCase().includes(search) || i.category.toLowerCase().includes(search)) && locMatches(i));
   const crates = all.filter(i => i.type === 'crate').sort((a,b) => new Date(effectiveUpdatedAt(b)) - new Date(effectiveUpdatedAt(a)));
   const loose = all.filter(i => i.type !== 'crate'); // tracked items not sitting in any crate
 
@@ -7614,15 +7694,24 @@ function gearRenderList(app){
   const categoryNames = Object.keys(byCategory).sort((a,b) => a.localeCompare(b));
 
   app.innerHTML = `
-    ${gearRenderHeader()}
+    ${renderHeader('equipment')}
+    <div class="section-label" style="margin-bottom:2px;"><span>Gear log</span></div>
+    <div style="font-family:var(--display); font-size:13px; color:var(--text-dim); margin-bottom:16px;">${studioCount} studio · ${rentalCount} rental · ${projectCount} project</div>
     <div class="toolbar">
       <input type="search" id="searchBox" placeholder="Search gear…" value="${esc(app.dataset.search||'')}">
       <button class="btn icon-btn" id="refreshBtn" style="padding:11px 13px; font-size:16px;">↻</button>
-      <button class="btn primary" id="addBtn">+ Add</button>
+      <button class="btn primary round-add" id="addBtn" aria-label="Add item" title="Add item">+</button>
+    </div>
+    <div class="loc-filter-row">
+      <button class="btn small pill-outline ${!locFilter?'active':''}" data-locfilter="">all ${fullList.length}</button>
+      <button class="btn small pill-outline loc-filter-pill ${locFilter==='studio'?'active':''}" data-locfilter="studio"><span class="dot in" style="margin:0;"></span>studio ${studioCount}</button>
+      <button class="btn small pill-outline loc-filter-pill ${locFilter==='rental'?'active':''}" data-locfilter="rental"><span class="dot wip" style="margin:0;"></span>rental ${rentalCount}</button>
+      <button class="btn small pill-outline loc-filter-pill ${locFilter==='project'?'active':''}" data-locfilter="project"><span class="dot out" style="margin:0;"></span>project ${projectCount}</button>
     </div>
     <div class="preset-row">
-      <button class="btn small ${preset==='basic'?'primary':''}" data-preset="basic" style="flex:1;">Basic</button>
-      <button class="btn small ${preset==='wedding'?'primary':''}" data-preset="wedding" style="flex:1;">Wedding</button>
+      <span style="font-family:var(--display); font-size:13px; color:var(--text-dim); flex:none; align-self:center;">kits</span>
+      <button class="btn small pill-outline ${preset==='basic'?'active':''}" data-preset="basic">Basic</button>
+      <button class="btn small pill-outline ${preset==='wedding'?'active':''}" data-preset="wedding">Wedding</button>
       ${preset ? `<button class="btn small ghost" data-preset="" style="flex:none;">Clear</button>` : ''}
     </div>
     <div id="listWrap">
@@ -7640,7 +7729,6 @@ function gearRenderList(app){
       ` : ''}
       ${!crates.length && !categoryNames.length ? `<div class="empty">No gear matches. Add your first crate or item to get started.</div>` : ''}
     </div>
-    ${renderBottomNav('equipment')}
   `;
   document.querySelectorAll('[data-preset]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -7648,7 +7736,15 @@ function gearRenderList(app){
       gearRenderList(app);
     });
   });
+  document.querySelectorAll('[data-locfilter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      app.dataset.locFilter = btn.dataset.locfilter;
+      gearRenderList(app);
+    });
+  });
   wireNavtabs(app);
+  document.getElementById('contributorBtn').addEventListener('click', () => promptContributorName());
+  document.getElementById('calBtn').addEventListener('click', () => goGearCalendar());
   document.querySelectorAll('.dropdown-group').forEach(d => {
     d.addEventListener('toggle', () => {
       if(d.open) gearExpandedCategories.add(d.dataset.cat);
@@ -7667,42 +7763,43 @@ function gearRenderList(app){
     showToast('Synced');
   });
   document.getElementById('addBtn').addEventListener('click', () => openAddModal());
-  document.getElementById('gearCalBtn').addEventListener('click', () => goGearCalendar());
   [...crates, ...loose].forEach(e => document.getElementById('card-'+e.id).addEventListener('click', () => goItem(e.id)));
 }
 
 function gearCardHtml(e){
   const st = statusOf(e);
-  let sub = '';
+  let contentsText = '';
   if(e.type === 'crate'){
     const kids = childrenOf(e.id);
     const bundled = kids.filter(k => !k.tracked).length;
     const branched = kids.filter(k => k.tracked).length;
-    sub = `<div class="card-sub">${bundled} item${bundled===1?'':'s'} bundled${branched ? ` · ${branched} tracked separately` : ''}</div>`;
+    const total = bundled + branched;
+    contentsText = `${total} item${total===1?'':'s'}`;
   } else if(e.parentId){
     const p = gearById(e.parentId);
-    sub = `<div class="card-sub">tracked separately from ${esc(p ? p.name : 'crate')}</div>`;
+    contentsText = `split from ${p ? p.name : 'crate'}`;
   }
+  const metaParts = [e.category, effectiveLocation(e), contentsText].filter(Boolean);
   return `
-    <div class="card" id="card-${e.id}">
+    <div class="table-row" id="card-${e.id}">
       <div class="dot ${st}"></div>
-      <div class="card-body">
-        <div class="card-name">${esc(displayName(e))} ${e.type==='crate' ? '<span class="tag-chip crate">Crate</span>' : ''}</div>
-        <div class="card-meta"><span class="tag-chip">${esc(e.category)}</span></div>
-        <div class="card-loc">${esc(effectiveLocation(e))}</div>
-        ${sub}
+      <div class="table-row-body">
+        <div class="table-row-name">${esc(displayName(e))}</div>
+        <div class="table-row-meta">${metaParts.map(esc).join(' · ')}</div>
       </div>
-      <div class="card-time">${timeAgo(effectiveUpdatedAt(e))}</div>
+      <div class="table-row-time">${timeAgo(effectiveUpdatedAt(e))}</div>
     </div>`;
 }
 
 function gearRenderNotFound(app, id){
   app.innerHTML = `
-    ${gearRenderHeader()}
+    ${renderHeader('equipment')}
     <div class="empty">No item tagged "${esc(id)}" in the log.<br><br>
     <button class="btn" id="backBtn">← Back to full list</button></div>`;
   document.getElementById('backBtn').addEventListener('click', goList);
-  document.getElementById('gearCalBtn').addEventListener('click', () => goGearCalendar());
+  wireNavtabs(app);
+  document.getElementById('contributorBtn').addEventListener('click', () => promptContributorName());
+  document.getElementById('calBtn').addEventListener('click', () => goGearCalendar());
 }
 
 function gearRenderDetail(app, e){
