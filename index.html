@@ -297,6 +297,26 @@
   .table-row-name{font-size:16px; font-weight:600; font-family:var(--display);}
   .table-row-meta{font-size:13px; color:var(--text-dim); font-family:var(--display); margin-top:2px; text-transform:lowercase;}
   .table-row-time{font-family:var(--display); font-size:13px; color:var(--text-dim); flex:none; padding-top:2px;}
+  .table-row-col{display:none;}
+  .table-header-row{display:none;}
+  @media (min-width:860px){
+    .table-row{
+      display:grid; grid-template-columns: 18px 2fr 1fr 1fr 1fr 90px;
+      align-items:center; gap:16px; padding:12px 0;
+    }
+    .table-row .dot{margin-top:0;}
+    .table-row-meta{display:none;}
+    .table-row-col{
+      display:block; font-size:13px; color:var(--text-dim); font-family:var(--display); text-transform:lowercase;
+    }
+    .table-row-time{padding-top:0;}
+    .table-header-row{
+      display:grid; grid-template-columns: 18px 2fr 1fr 1fr 1fr 90px; gap:16px;
+      font-family:var(--display); font-size:12px; color:var(--text-dim); text-transform:lowercase;
+      padding:0 0 8px 0; border-bottom:1px solid var(--line); margin-top:8px;
+    }
+    .table-header-row span:first-child{grid-column:2;}
+  }
   .card-name{font-weight:700; font-size:15px; margin-bottom:3px; display:flex; align-items:center; gap:6px;}
   .card-meta{font-family:var(--mono); font-size:12px; color:var(--text-dim); display:flex; gap:8px; flex-wrap:wrap;}
   .tag-chip{background:var(--panel-2); border-radius:5px; padding:1px 6px; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;}
@@ -701,6 +721,26 @@
   .table-row-name{font-size:16px; font-weight:600; font-family:var(--display);}
   .table-row-meta{font-size:13px; color:var(--text-dim); font-family:var(--display); margin-top:2px; text-transform:lowercase;}
   .table-row-time{font-family:var(--display); font-size:13px; color:var(--text-dim); flex:none; padding-top:2px;}
+  .table-row-col{display:none;}
+  .table-header-row{display:none;}
+  @media (min-width:860px){
+    .table-row{
+      display:grid; grid-template-columns: 18px 2fr 1fr 1fr 1fr 90px;
+      align-items:center; gap:16px; padding:12px 0;
+    }
+    .table-row .dot{margin-top:0;}
+    .table-row-meta{display:none;}
+    .table-row-col{
+      display:block; font-size:13px; color:var(--text-dim); font-family:var(--display); text-transform:lowercase;
+    }
+    .table-row-time{padding-top:0;}
+    .table-header-row{
+      display:grid; grid-template-columns: 18px 2fr 1fr 1fr 1fr 90px; gap:16px;
+      font-family:var(--display); font-size:12px; color:var(--text-dim); text-transform:lowercase;
+      padding:0 0 8px 0; border-bottom:1px solid var(--line); margin-top:8px;
+    }
+    .table-header-row span:first-child{grid-column:2;}
+  }
   .card-name{font-weight:700; font-size:15px; margin-bottom:3px; display:flex; align-items:center; gap:6px;}
   .card-meta{font-family:var(--mono); font-size:12px; color:var(--text-dim); display:flex; gap:8px; flex-wrap:wrap;}
   .tag-chip{background:var(--panel-2); border-radius:5px; padding:1px 6px; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;}
@@ -840,6 +880,9 @@
   .preset-row{display:flex; gap:8px; margin-bottom:16px;}
   .loc-filter-row{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
   .loc-filter-pill{display:flex; align-items:center; gap:6px;}
+  .checklist-row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .checklist-row input[type=text]{flex:1;}
+  .checklist-row input[type=checkbox]{flex:none; width:18px; height:18px;}
 
   .field-check{display:flex; align-items:center; gap:8px; font-size:13px; margin-top:4px;}
   .modal-actions{display:flex; gap:8px; margin-top:16px;}
@@ -1776,6 +1819,16 @@ function gatherCalendarEvents(){
           if(m.date) events.push({ date: m.date, projectId: p.id, projectName: p.name, color, label: 'Client meeting', type: 'meeting', done: false });
         });
       }
+      if(s.tests){
+        s.tests.forEach((t, i) => {
+          if(t.date) events.push({ date: t.date, projectId: p.id, projectName: p.name, color, label: `Test: ${t.name || 'Test ' + (i+1)}`, type: 'test', done: !!t.outcomeWentWell || !!t.outcomeNeedsTesting });
+        });
+      }
+      if(s.datedItems){
+        s.datedItems.forEach(d => {
+          if(d.date) events.push({ date: d.date, projectId: p.id, projectName: p.name, color, label: `${s.title || 'Step'}: ${truncate(d.description || 'Untitled', 40)}`, type: 'dated', done: false });
+        });
+      }
     });
     getShootDates(p).forEach(d => {
       events.push({ date: d, projectId: p.id, projectName: p.name, color, label: 'Shoot day', type: 'shoot', done: false });
@@ -2545,7 +2598,7 @@ function renderList(app, tab){
     <div class="toolbar">
       ${searchOpen
         ? `<input type="search" id="searchBox" placeholder="Search projects…" value="${esc(app.dataset.search||'')}">`
-        : `<button class="sq-btn" id="searchToggle" aria-label="Search">&#128269;</button>`}
+        : `<button class="sq-btn" id="searchToggle" aria-label="Search"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></button>`}
       <button class="btn primary round-add" id="addBtn" aria-label="New project" title="New project">+</button>
     </div>
     <div class="section-label"><span>Projects (${current.length})</span></div>
@@ -2910,6 +2963,7 @@ function renderDetail(app, p){
       else if(isEquipmentListsStep(step)) openEquipmentListsModal(p, step, true);
       else if(isBoardingStep(step)) openPerShotImagesModal(p, step, true, shotBoardKey, 'Storyboard images');
       else if(isLightingStep(step)) openPerShotImagesModal(p, step, true, shotLightKey, 'Lighting plan images');
+      else openStepModal(p, step, null, true);
     });
   });
   document.querySelectorAll('[data-donedot]').forEach(btn => {
@@ -7147,33 +7201,205 @@ function openBriefModal(project, step, sideRight){
 function openStepModal(project, step, presetStage, sideRight){
   closeSidePanels();
   const isNew = !step;
+  const stepType = step ? (step.stepType || 'standard') : 'standard';
+  const checklistItems = step && step.checklistItems ? JSON.parse(JSON.stringify(step.checklistItems)) : [];
+  const datedItems = step && step.datedItems ? JSON.parse(JSON.stringify(step.datedItems)) : [];
+  let currentType = stepType; // only changeable when creating a new step
   const bg = document.createElement('div');
   bg.className = 'modal-bg' + (sideRight ? ' side-right' : '');
-  bg.innerHTML = `
+
+  function typeBodyHtml(){
+    if(currentType === 'checklist'){
+      return `
+        <div class="field"><label>Checklist</label></div>
+        <div id="checklistItemsList">${checklistItems.map(item => `
+          <div class="checklist-row" data-checkid="${item.id}">
+            <input type="checkbox" data-checkfield="checked" data-checkid="${item.id}" ${item.checked?'checked':''}>
+            <input type="text" data-checkfield="text" data-checkid="${item.id}" placeholder="Item…" value="${esc(item.text||'')}">
+            <button type="button" class="mo-btn" data-removecheck="${item.id}" aria-label="Remove">✕</button>
+          </div>`).join('')}</div>
+        <button type="button" class="btn small" id="addChecklistItem" style="width:100%; margin:8px 0 14px;">+ Add item</button>`;
+    }
+    if(currentType === 'dated'){
+      return `
+        <div class="field"><label>Dates</label></div>
+        <div id="datedItemsList">${datedItems.map(item => `
+          <div class="card-sub" style="padding:12px; margin-bottom:10px;" data-datedid="${item.id}">
+            <div class="field"><label>Date</label>${dateFieldHtml('dateditemdate-'+item.id, item.date)}</div>
+            <div class="field"><label>What's happening</label><textarea data-datedfield="description" data-datedid="${item.id}" placeholder="What's happening on this date…">${esc(item.description||'')}</textarea></div>
+            <button type="button" class="btn small ghost" data-removedated="${item.id}" style="width:100%;">Remove date</button>
+          </div>`).join('')}</div>
+        <button type="button" class="btn small" id="addDatedItem" style="width:100%; margin:8px 0 14px;">+ Add date</button>`;
+    }
+    return `<div class="field"><label>Description</label><textarea id="stDesc" placeholder="What this step involves…">${esc(step ? step.description : '')}</textarea></div>`;
+  }
+
+  function paint(){
+    const prevModal = bg.querySelector('.modal');
+    const scrollTop = prevModal ? prevModal.scrollTop : 0;
+    // preserve in-progress field values (title/who/dates) across a type-switch repaint
+    const prevTitle = bg.querySelector('#stTitle');
+    const carry = {
+      title: prevTitle ? prevTitle.value : (step ? step.title : ''),
+      who: bg.querySelector('#stWho') ? bg.querySelector('#stWho').value : (step ? step.who : ''),
+      startDate: bg.querySelector('#stStartDate') ? bg.querySelector('#stStartDate').value : (step ? step.startDate : ''),
+      endDate: bg.querySelector('#stEndDate') ? bg.querySelector('#stEndDate').value : (step ? step.endDate : ''),
+      stage: bg.querySelector('#stStage') ? bg.querySelector('#stStage').value : (step ? step.stage : presetStage),
+    };
+    bg.innerHTML = `
     <div class="modal">
       <h3>${isNew ? 'Add step' : 'Edit step'}</h3>
-      <div class="field"><label>Step name</label><input type="text" id="stTitle" placeholder="e.g. Blocking and storyboarding" value="${esc(step ? step.title : '')}"></div>
+      ${isNew ? `
+        <div class="field"><label>Step type</label>
+          <div class="preset-row">
+            <button type="button" class="btn small pill-outline ${currentType==='standard'?'active':''}" data-steptype="standard" style="flex:1;">Standard</button>
+            <button type="button" class="btn small pill-outline ${currentType==='checklist'?'active':''}" data-steptype="checklist" style="flex:1;">Checklist</button>
+            <button type="button" class="btn small pill-outline ${currentType==='dated'?'active':''}" data-steptype="dated" style="flex:1;">Dated</button>
+          </div>
+        </div>` : ''}
+      <div class="field"><label>Step name</label><input type="text" id="stTitle" placeholder="e.g. Blocking and storyboarding" value="${esc(carry.title)}"></div>
       <div class="field"><label>Stage</label>
-        <select id="stStage">${STAGES.map(s => `<option value="${s.key}" ${(step?step.stage:presetStage)===s.key?'selected':''}>${s.label}</option>`).join('')}</select>
+        <select id="stStage">${STAGES.map(s => `<option value="${s.key}" ${carry.stage===s.key?'selected':''}>${s.label}</option>`).join('')}</select>
       </div>
-      ${isNew ? `<div class="field"><label>Position</label><select id="stPosition">${positionOptionsHtml(project, presetStage, 'end')}</select></div>` : ''}
-      <div class="field"><label>Who</label><input type="text" id="stWho" placeholder="e.g. owen / both" value="${esc(step ? step.who : '')}"></div>
+      ${isNew ? `<div class="field"><label>Position</label><select id="stPosition">${positionOptionsHtml(project, carry.stage, 'end')}</select></div>` : ''}
+      <div class="field"><label>Who</label><input type="text" id="stWho" placeholder="e.g. owen / both" value="${esc(carry.who)}"></div>
       <div class="field-row" data-rangepicker>
-        <div class="field"><label>Start date</label>${dateFieldHtml('stStartDate', step ? step.startDate : '')}</div>
-        <div class="field"><label>End date</label>${dateFieldHtml('stEndDate', step ? step.endDate : '')}</div>
+        <div class="field"><label>Start date</label>${dateFieldHtml('stStartDate', carry.startDate)}</div>
+        <div class="field"><label>End date</label>${dateFieldHtml('stEndDate', carry.endDate)}</div>
       </div>
       <div class="script-hint">Tap either date — one calendar sets both.</div>
-      <div class="field"><label>Description</label><textarea id="stDesc" placeholder="What this step involves…">${esc(step ? step.description : '')}</textarea></div>
+      ${typeBodyHtml()}
       ${!isNew ? `<button class="btn danger small" id="stDelete" style="margin-top:10px;">Delete step</button>` : ''}
       <div class="modal-actions">
         <button class="btn ghost" id="stCancel" style="flex:1;">Cancel</button>
         <button class="btn primary" id="stSave" style="flex:1;">${isNew ? 'Add' : 'Save'}</button>
       </div>
     </div>`;
+    const newModal = bg.querySelector('.modal');
+    if(newModal) newModal.scrollTop = scrollTop;
+    autoGrowAll(bg);
+    wire();
+  }
+
+  function wire(){
+    bg.querySelector('#stTitle').focus();
+    bg.querySelector('#stCancel').addEventListener('click', () => bg.remove());
+    bg.querySelectorAll('[data-steptype]').forEach(btn => {
+      btn.addEventListener('click', () => { currentType = btn.dataset.steptype; paint(); });
+    });
+    const stageSel = bg.querySelector('#stStage');
+    const posSel = bg.querySelector('#stPosition');
+    if(posSel){
+      stageSel.addEventListener('change', () => {
+        posSel.innerHTML = positionOptionsHtml(project, stageSel.value, 'end');
+      });
+    }
+    const delBtn = bg.querySelector('#stDelete');
+    if(delBtn){
+      delBtn.addEventListener('click', () => {
+        openConfirmModal(`Delete step "${step.title || 'Untitled step'}"?`, async () => {
+          project.steps = project.steps.filter(s => s.id !== step.id);
+          touchProject(project);
+          const ok = await saveProjects();
+          bg.remove();
+          showToast(ok ? 'Step deleted' : 'Delete failed', !ok);
+          if(ok) render();
+        });
+      });
+    }
+    const addChecklistBtn = bg.querySelector('#addChecklistItem');
+    if(addChecklistBtn) addChecklistBtn.addEventListener('click', () => {
+      checklistItems.push({ id: uid(), text:'', checked:false });
+      paint();
+    });
+    bg.querySelectorAll('[data-removecheck]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = checklistItems.findIndex(i => i.id === btn.dataset.removecheck);
+        if(idx !== -1) checklistItems.splice(idx, 1);
+        paint();
+      });
+    });
+    bg.querySelectorAll('[data-checkfield]').forEach(el => {
+      const evName = el.type === 'checkbox' ? 'change' : 'blur';
+      el.addEventListener(evName, () => {
+        const item = checklistItems.find(i => i.id === el.dataset.checkid);
+        if(!item) return;
+        item[el.dataset.checkfield] = el.type === 'checkbox' ? el.checked : el.value;
+      });
+    });
+    const addDatedBtn = bg.querySelector('#addDatedItem');
+    if(addDatedBtn) addDatedBtn.addEventListener('click', () => {
+      datedItems.push({ id: uid(), date:'', description:'' });
+      paint();
+    });
+    bg.querySelectorAll('[data-removedated]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = datedItems.findIndex(i => i.id === btn.dataset.removedated);
+        if(idx !== -1) datedItems.splice(idx, 1);
+        paint();
+      });
+    });
+    bg.querySelectorAll('[data-datedfield]').forEach(el => {
+      el.addEventListener('blur', () => {
+        const item = datedItems.find(i => i.id === el.dataset.datedid);
+        if(!item) return;
+        item[el.dataset.datedfield] = el.value;
+      });
+    });
+
+    bg.querySelector('#stSave').addEventListener('click', async () => {
+      const title = bg.querySelector('#stTitle').value.trim();
+      if(!title){ showToast('Give the step a name', true); return; }
+      // capture any dated-item date picks that haven't triggered a repaint yet
+      datedItems.forEach(item => {
+        const hidden = bg.querySelector(`#dateditemdate-${item.id}`);
+        if(hidden) item.date = hidden.value;
+      });
+      const now = new Date().toISOString();
+      const data = {
+        title,
+        stage: bg.querySelector('#stStage').value,
+        who: bg.querySelector('#stWho').value.trim(),
+        startDate: bg.querySelector('#stStartDate').value.trim(),
+        endDate: bg.querySelector('#stEndDate').value.trim(),
+        description: currentType === 'standard' ? (bg.querySelector('#stDesc') ? bg.querySelector('#stDesc').value.trim() : '') : (step ? step.description : ''),
+        stepType: isNew ? currentType : stepType,
+        checklistItems: currentType === 'checklist' || stepType === 'checklist' ? checklistItems : (step ? step.checklistItems : undefined),
+        datedItems: currentType === 'dated' || stepType === 'dated' ? datedItems : (step ? step.datedItems : undefined),
+        done: isNew ? false : step.done,
+        updatedAt: now,
+      };
+      if(!isNew) data.completedDate = step.completedDate || '';
+      if(!isNew) data.completionAcked = step.completionAcked;
+      // track a delay: if the end date is pushed to something later than what it was before, keep the
+      // very first committed end date so the Gantt chart can mark where it originally sat
+      if(!isNew){
+        data.originalEndDate = step.originalEndDate || '';
+        if(step.endDate && data.endDate && data.endDate > step.endDate && !data.originalEndDate){
+          data.originalEndDate = step.endDate;
+        } else if(data.originalEndDate && data.endDate && data.endDate <= data.originalEndDate){
+          data.originalEndDate = ''; // no longer delayed relative to the original commitment
+        }
+      }
+      const posSel = bg.querySelector('#stPosition');
+      if(isNew){
+        const newStep = { id: uid(), ...data };
+        const position = posSel ? posSel.value : 'end';
+        insertStepAtPosition(project, newStep, data.stage, position);
+      } else {
+        Object.assign(step, data);
+      }
+      touchProject(project);
+      const ok = await saveProjects();
+      bg.remove();
+      showToast(ok ? (isNew ? 'Step added' : 'Step saved') : 'Save failed', !ok);
+      if(ok) render();
+    });
+  }
+
   presentPanel(bg, (step ? step.id : null));
-  autoGrowAll(bg);
-  bg.querySelector('#stTitle').focus();
   bg.addEventListener('click', ev => {
+    if(ev.target === bg){ bg.remove(); return; }
     const trigger = ev.target.closest('.dfield');
     if(!trigger) return;
     const rangeWrap = trigger.closest('[data-rangepicker]');
@@ -7184,69 +7410,7 @@ function openStepModal(project, step, presetStage, sideRight){
       openDatePicker(trigger);
     }
   });
-  bg.querySelector('#stCancel').addEventListener('click', () => bg.remove());
-  bg.addEventListener('click', ev => { if(ev.target === bg) bg.remove(); });
-  const stageSel = bg.querySelector('#stStage');
-  const posSel = bg.querySelector('#stPosition');
-  if(posSel){
-    stageSel.addEventListener('change', () => {
-      posSel.innerHTML = positionOptionsHtml(project, stageSel.value, 'end');
-    });
-  }
-
-  const delBtn = bg.querySelector('#stDelete');
-  if(delBtn){
-    delBtn.addEventListener('click', () => {
-      openConfirmModal(`Delete step "${step.title || 'Untitled step'}"?`, async () => {
-        project.steps = project.steps.filter(s => s.id !== step.id);
-        touchProject(project);
-        const ok = await saveProjects();
-        bg.remove();
-        showToast(ok ? 'Step deleted' : 'Delete failed', !ok);
-        if(ok) render();
-      });
-    });
-  }
-
-  bg.querySelector('#stSave').addEventListener('click', async () => {
-    const title = bg.querySelector('#stTitle').value.trim();
-    if(!title){ showToast('Give the step a name', true); return; }
-    const now = new Date().toISOString();
-    const data = {
-      title,
-      stage: bg.querySelector('#stStage').value,
-      who: bg.querySelector('#stWho').value.trim(),
-      startDate: bg.querySelector('#stStartDate').value.trim(),
-      endDate: bg.querySelector('#stEndDate').value.trim(),
-      description: bg.querySelector('#stDesc').value.trim(),
-      done: isNew ? false : step.done,
-      updatedAt: now,
-    };
-    if(!isNew) data.completedDate = step.completedDate || '';
-    if(!isNew) data.completionAcked = step.completionAcked;
-    // track a delay: if the end date is pushed to something later than what it was before, keep the
-    // very first committed end date so the Gantt chart can mark where it originally sat
-    if(!isNew){
-      data.originalEndDate = step.originalEndDate || '';
-      if(step.endDate && data.endDate && data.endDate > step.endDate && !data.originalEndDate){
-        data.originalEndDate = step.endDate;
-      } else if(data.originalEndDate && data.endDate && data.endDate <= data.originalEndDate){
-        data.originalEndDate = ''; // no longer delayed relative to the original commitment
-      }
-    }
-    if(isNew){
-      const newStep = { id: uid(), ...data };
-      const position = posSel ? posSel.value : 'end';
-      insertStepAtPosition(project, newStep, data.stage, position);
-    } else {
-      Object.assign(step, data);
-    }
-    project.updatedAt = now;
-    const ok = await saveProjects();
-    bg.remove();
-    showToast(ok ? (isNew ? 'Step added' : 'Step saved') : 'Save failed', !ok);
-    if(ok) render();
-  });
+  paint();
 }
 
 async function refreshAndRender(){
@@ -7715,7 +7879,7 @@ function gearRenderList(app){
       ${preset ? `<button class="btn small ghost" data-preset="" style="flex:none;">Clear</button>` : ''}
     </div>
     <div id="listWrap">
-      ${crates.length ? `<div class="section-label"><span>Crates (${crates.length})</span></div>${crates.map(gearCardHtml).join('')}` : ''}
+      ${crates.length ? `<div class="section-label"><span>Crates (${crates.length})</span></div><div class="table-header-row"><span>name</span><span>category</span><span>location</span><span>contents</span><span>updated</span></div>${crates.map(gearCardHtml).join('')}` : ''}
       ${categoryNames.length ? `
         <div class="section-label"><span>Not in a crate (${loose.length})</span></div>
         ${categoryNames.map(cat => `
@@ -7779,7 +7943,9 @@ function gearCardHtml(e){
     const p = gearById(e.parentId);
     contentsText = `split from ${p ? p.name : 'crate'}`;
   }
-  const metaParts = [e.category, effectiveLocation(e), contentsText].filter(Boolean);
+  const category = e.category || '';
+  const location = effectiveLocation(e);
+  const metaParts = [category, location, contentsText].filter(Boolean);
   return `
     <div class="table-row" id="card-${e.id}">
       <div class="dot ${st}"></div>
@@ -7787,6 +7953,9 @@ function gearCardHtml(e){
         <div class="table-row-name">${esc(displayName(e))}</div>
         <div class="table-row-meta">${metaParts.map(esc).join(' · ')}</div>
       </div>
+      <div class="table-row-col table-row-col-cat">${esc(category)}</div>
+      <div class="table-row-col table-row-col-loc">${esc(location)}</div>
+      <div class="table-row-col table-row-col-contents">${esc(contentsText)}</div>
       <div class="table-row-time">${timeAgo(effectiveUpdatedAt(e))}</div>
     </div>`;
 }
