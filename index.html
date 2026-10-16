@@ -24,6 +24,25 @@
     --pre: #C9821E;
     --yellow: #D9A404;
     --radius: 10px;
+    --btn-bg: #111;
+    --btn-fg: #fff;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"]{
+    --bg: #101113;
+    --panel: #1a1b1e;
+    --panel-2: #25262a;
+    --line: #34363b;
+    --text: #ececec;
+    --text-dim: #9a9ea3;
+    --in: #4FA36B;
+    --out: #FF4A5E;
+    --amber: #33B5EA;
+    --pre: #E0963A;
+    --yellow: #EDBB2C;
+    --btn-bg: #ececec;
+    --btn-fg: #111;
+    color-scheme: dark;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
   html,body{margin:0;padding:0;}
@@ -176,6 +195,13 @@
   .sched-list{display:flex; flex-direction:column; gap:6px;}
   .sched-item-wrap{display:flex; flex-direction:column;}
   .sched-item{display:flex; align-items:baseline; justify-content:space-between; gap:8px; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:7px 10px;}
+  .sched-item.sched-clickable{cursor:pointer;}
+  .sched-item.sched-clickable:hover, .sched-item.sched-open{border-color:var(--text);}
+  .doc-row{display:flex; flex-direction:column; gap:6px; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:8px; margin-bottom:8px;}
+  .an-progress{height:6px; background:var(--panel-2); border-radius:999px; overflow:hidden;}
+  .an-progress > div{height:100%; background:var(--text); transition:width .15s;}
+  .an-sql{font-family:var(--mono); font-size:11px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px; white-space:pre-wrap; margin:8px 0; overflow-x:auto;}
+  .sched-edit-box{background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px 10px; margin-top:6px;}
   .sched-item.sched-lunch{background:rgba(217,164,4,0.12); border-color:var(--yellow); border-style:dashed;}
   .sched-item.sched-drive{background:rgba(9,124,124,0.1); border-color:var(--in);}
   .sched-seg-drive{background:repeating-linear-gradient(45deg, var(--in), var(--in) 3px, var(--panel) 3px, var(--panel) 6px) !important;}
@@ -258,7 +284,7 @@
     cursor:pointer; white-space:nowrap;
   }
   .btn:active{transform:scale(0.98);}
-  .btn.primary{background:#111; color:#fff; border-color:#111;}
+  .btn.primary{background:var(--btn-bg); color:var(--btn-fg); border-color:var(--btn-bg);}
   .round-add{width:44px; height:44px; padding:0; border-radius:50%; font-size:22px; line-height:1; flex:none;}
   .pill-outline{background:var(--panel); border:1px solid var(--line); border-radius:999px; color:var(--text); text-transform:lowercase;}
   .pill-outline.active{background:var(--text); color:#fff; border-color:var(--text);}
@@ -339,11 +365,11 @@
 
   .detail-header{display:flex; align-items:center; gap:14px; margin-bottom:22px;}
   .tally-big{width:16px;height:16px;border-radius:50%; flex:none;}
-  .tally-big.pre{background:var(--pre); box-shadow:0 0 14px 3px rgba(201,130,30,0.6);}
-  .tally-big.prod{background:var(--out); box-shadow:0 0 14px 3px rgba(214,0,28,0.6);}
-  .tally-big.post{background:var(--amber); box-shadow:0 0 14px 3px rgba(0,156,222,0.6);}
-  .tally-big.wrap{background:var(--in); box-shadow:0 0 14px 3px rgba(39,93,56,0.6);}
-  .tally-big.wip{background:var(--yellow); box-shadow:0 0 14px 3px rgba(217,164,4,0.6);}
+  .tally-big.pre{background:var(--pre);}
+  .tally-big.prod{background:var(--out);}
+  .tally-big.post{background:var(--amber);}
+  .tally-big.wrap{background:var(--in);}
+  .tally-big.wip{background:var(--yellow);}
   .tally-big.none{background:var(--text-dim); box-shadow:none;}
   .tally-big.blank{background:transparent; box-shadow: inset 0 0 0 2.5px var(--text-dim);}
   .detail-title h2{margin:0 0 3px 0; font-size:22px; font-weight:800;}
@@ -432,6 +458,7 @@
   /* moodboard editor */
   .mboard-toolbar{display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding-bottom:14px; margin-bottom:14px; border-bottom:1px solid var(--line);}
   .mboard-title{font-weight:800; font-size:16px;}
+  .mb-tl{position:relative; height:calc(100vh - 320px); min-height:460px; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-bottom:12px;}
   .mboard-hint{font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:10px; min-height:2.4em;}
   .mboard-wrap{
     overflow:hidden; border:1px solid var(--line); border-radius:var(--radius);
@@ -621,16 +648,15 @@
   .loading{padding:60px 20px; text-align:center; color:var(--text-dim); font-family:var(--mono); font-size:13px;}
 
   .bottomnav{
-    position:sticky; bottom:0; left:0; right:0; margin:24px -16px 0;
-    background:var(--bg); border-top:1px solid var(--line); display:flex; z-index:15;
-    padding-bottom: env(safe-area-inset-bottom, 0);
+    position:sticky; bottom:calc(14px + env(safe-area-inset-bottom, 0)); margin:24px auto 0; max-width:420px;
+    display:flex; gap:2px; padding:5px; z-index:15;
+    background:var(--panel); border:1px solid var(--line); border-radius:999px; box-shadow:0 4px 18px rgba(0,0,0,0.08);
   }
   .navtab{
-    flex:1; background:none; border:none; padding:11px 4px 9px; cursor:pointer;
-    font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim);
-    border-top:2px solid transparent; margin-top:-1px; line-height:1.3;
+    flex:1; background:none; border:none; padding:8px 10px; cursor:pointer; border-radius:999px; text-align:center;
+    font-family:var(--display); font-size:13.5px; font-weight:500; color:var(--text-dim);
   }
-  .navtab.active{color:var(--text); font-weight:700; border-top-color:var(--amber);}
+  .navtab.active{background:var(--panel); color:var(--text); font-weight:600; box-shadow:0 0 0 1px var(--line);}
 
   #printBudget{display:none;}
   @media print{
@@ -693,7 +719,7 @@
     cursor:pointer; white-space:nowrap;
   }
   .btn:active{transform:scale(0.98);}
-  .btn.primary{background:#111; color:#fff; border-color:#111;}
+  .btn.primary{background:var(--btn-bg); color:var(--btn-fg); border-color:var(--btn-bg);}
   .round-add{width:44px; height:44px; padding:0; border-radius:50%; font-size:22px; line-height:1; flex:none;}
   .pill-outline{background:var(--panel); border:1px solid var(--line); border-radius:999px; color:var(--text); text-transform:lowercase;}
   .pill-outline.active{background:var(--text); color:#fff; border-color:var(--text);}
@@ -764,8 +790,8 @@
 
   .detail-header{display:flex; align-items:center; gap:14px; margin-bottom:22px;}
   .tally-big{width:16px;height:16px;border-radius:50%; flex:none;}
-  .tally-big.in{background:var(--in); box-shadow:0 0 14px 3px rgba(39,93,56,0.6);}
-  .tally-big.out{background:var(--out); box-shadow:0 0 14px 3px rgba(214,0,28,0.6);}
+  .tally-big.in{background:var(--in);}
+  .tally-big.out{background:var(--out);}
   .detail-title h2{margin:0 0 3px 0; font-size:22px; font-weight:800;}
   .detail-title .status-word{font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase;}
   .status-word.in{color:var(--in);} .status-word.out{color:var(--out);}
@@ -920,6 +946,7 @@
   const SUPABASE_URL = 'https://bpaipvdivzyqzvyiqrra.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwYWlwdmRpdnp5cXp2eWlxcnJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyODYyOTEsImV4cCI6MjEwNDg2MjI5MX0.Eb-H2c6wwyk1n9QjzZHaIXKppanWBs9ZvOWGqkJV4EE';
   const REST_URL = SUPABASE_URL + '/rest/v1/kv_store';
+  window.__supabase = { url: SUPABASE_URL, key: SUPABASE_ANON_KEY }; // reused by file uploads (Supabase Storage)
   const baseHeaders = {
     'apikey': SUPABASE_ANON_KEY,
     'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
@@ -1850,6 +1877,203 @@ function gatherCalendarEvents(){
   return events;
 }
 
+function icsEscapeStr(s){ return (s||'').replace(/\\/g,'\\\\').replace(/,/g,'\\,').replace(/;/g,'\\;').replace(/\n/g,'\\n'); }
+function toIcsDateStr(iso){ return (iso||'').replace(/-/g,''); }
+// builds one .ics file containing a VEVENT per selected step, optionally inviting the given
+// recipient emails as ATTENDEEs — no backend/email service involved, the file just gets
+// downloaded and attached by hand to whatever email the user sends.
+function buildStepsIcs(project, steps, emails){
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//twolastnames//project log//EN','CALSCALE:GREGORIAN'];
+  const stamp = new Date().toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+  steps.forEach(s => {
+    const d = stepDeadline(s);
+    if(!d) return;
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${s.id}-${d}@twolastnames`);
+    lines.push(`DTSTAMP:${stamp}`);
+    lines.push(`DTSTART;VALUE=DATE:${toIcsDateStr(d)}`);
+    lines.push(`SUMMARY:${icsEscapeStr(project.name + ' — ' + (s.title || 'Step'))}`);
+    if(s.progressNote) lines.push(`DESCRIPTION:${icsEscapeStr(s.progressNote)}`);
+    (emails||[]).forEach(em => lines.push(`ATTENDEE;RSVP=TRUE:mailto:${em}`));
+    lines.push('END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+function downloadIcsFile(filename, content){
+  const blob = new Blob([content], { type:'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+// lets the user pick which steps to invite people to and who — generates a downloadable .ics
+// with one event per picked step (dateless steps can't be picked) and opens a prefilled email
+// ready to send, with a reminder to attach the file that was just downloaded.
+function openInviteModal(project){
+  closeSidePanels();
+  const allSteps = (project.steps || []).filter(s => !s.hidden);
+  const datedSteps = allSteps.filter(s => !!stepDeadline(s));
+  const selected = new Set();
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg side-right';
+
+  function rowHtml(s){
+    const checked = selected.has(s.id);
+    return `
+      <div class="checklist-row" data-invitestep="${s.id}">
+        <input type="checkbox" data-invitecheck="${s.id}" ${checked ? 'checked' : ''}>
+        <label style="flex:1; cursor:pointer;" data-invitelabel="${s.id}">${esc(s.title || 'Untitled step')} <span style="color:var(--text-dim); font-family:var(--mono); font-size:10.5px;">· ${esc(fmtDate(stepDeadline(s)))}</span></label>
+      </div>`;
+  }
+
+  bg.innerHTML = `
+    <div class="modal">
+      <h3>Send invite</h3>
+      <div style="font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:10px;">${esc(project.name)}</div>
+      <label class="loc-label">Steps to invite people to</label>
+      ${datedSteps.length ? `<div id="inviteStepList">${datedSteps.map(rowHtml).join('')}</div>` : `<div style="font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:10px;">No steps with a date yet — add a date to a step first.</div>`}
+      <div class="field" style="margin-top:12px;">
+        <label class="loc-label">Who to invite</label>
+        <textarea id="inviteEmails" rows="2" placeholder="email addresses, separated by commas"></textarea>
+      </div>
+      <div class="field">
+        <label class="loc-label">Message (optional)</label>
+        <textarea id="inviteMessage" rows="3" placeholder="Anything to add to the email…"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="inviteCancel" style="flex:1;">Cancel</button>
+        <button class="btn primary" id="inviteSend" style="flex:1;">Download &amp; email invite</button>
+      </div>
+    </div>`;
+  presentPanel(bg, null);
+  bg.querySelectorAll('[data-invitecheck]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if(cb.checked) selected.add(cb.dataset.invitecheck); else selected.delete(cb.dataset.invitecheck);
+    });
+  });
+  bg.querySelectorAll('[data-invitelabel]').forEach(lab => {
+    lab.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      const cb = bg.querySelector(`[data-invitecheck="${lab.dataset.invitelabel}"]`);
+      cb.checked = !cb.checked;
+      cb.dispatchEvent(new Event('change'));
+    });
+  });
+  bg.querySelector('#inviteCancel').addEventListener('click', () => bg.remove());
+  bg.addEventListener('click', ev => { if(ev.target === bg) bg.remove(); });
+  bg.querySelector('#inviteSend').addEventListener('click', () => {
+    const stepsToInvite = datedSteps.filter(s => selected.has(s.id));
+    if(!stepsToInvite.length){ showToast('Pick at least one step', true); return; }
+    const emailsRaw = bg.querySelector('#inviteEmails').value.trim();
+    const emails = emailsRaw.split(/[,\n]/).map(e => e.trim()).filter(Boolean);
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const bad = emails.filter(e => !emailRe.test(e));
+    if(!emails.length){ showToast('Add at least one email address', true); return; }
+    if(bad.length){ showToast(`Not a valid email: ${bad[0]}`, true); return; }
+
+    const ics = buildStepsIcs(project, stepsToInvite, emails);
+    const filename = `${(project.name || 'project').replace(/[^a-z0-9]+/gi,'-')}-invite.ics`;
+    downloadIcsFile(filename, ics);
+
+    const message = bg.querySelector('#inviteMessage').value.trim();
+    const stepList = stepsToInvite.map(s => `${s.title || 'Step'} (${fmtDate(stepDeadline(s))})`).join(', ');
+    const subject = `Invite: ${project.name}`;
+    const body = [
+      message,
+      message ? '' : null,
+      `You're invited to: ${stepList}.`,
+      '',
+      `A calendar file (${filename}) has just downloaded — attach it to this email before sending so it shows up as a calendar invite.`,
+    ].filter(l => l !== null).join('\n');
+    const mailto = `mailto:${emails.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+
+    bg.remove();
+    showToast('Invite downloaded — attach it in your email app');
+  });
+}
+
+// one place for every link tied to a project (brief docs, spreadsheets, folders, contracts…) — saves as you type
+function openDocumentsModal(project){
+  if(document.querySelector('.modal-bg[data-docs="1"]')){ closeSidePanels(); return; }
+  closeSidePanels();
+  if(!project.documents) project.documents = [];
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg side-right';
+  bg.dataset.docs = '1';
+  const normUrl = u => { u = (u||'').trim(); return (u && !/^[a-z][a-z0-9+.-]*:/i.test(u)) ? 'https://' + u : u; };
+  const safeHref = u => /^(https?:|mailto:)/i.test(u) ? u : '';
+  function hostOf(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return ''; } }
+
+  async function persist(){
+    touchProject(project);
+    const ok = await saveProjects();
+    if(!ok) showToast('Save failed — try again', true);
+  }
+  function paint(){
+    const prev = bg.querySelector('.modal');
+    const scrollTop = prev ? prev.scrollTop : 0;
+    bg.innerHTML = `
+      <div class="modal">
+        <h3>Documents</h3>
+        <div class="timeline-hint">Paste links to everything for ${esc(project.name)} — Google Docs and Sheets, Drive folders, contracts, references.</div>
+        ${project.documents.length ? project.documents.map(d => `
+          <div class="doc-row" data-docid="${d.id}">
+            <input type="text" class="sl-input" data-docfield="label" data-docid="${d.id}" value="${esc(d.label||'')}" placeholder="Name, e.g. Shot list sheet">
+            <div style="display:flex; gap:6px; align-items:center;">
+              <input type="text" class="sl-input" data-docfield="url" data-docid="${d.id}" value="${esc(d.url||'')}" placeholder="Paste link" style="flex:1; min-width:0;">
+              ${safeHref(d.url) ? `<a class="btn small" href="${esc(safeHref(d.url))}" target="_blank" rel="noopener noreferrer" title="Open link">Open</a>` : ''}
+              <button type="button" class="mo-btn" data-removedoc="${d.id}" aria-label="Remove link">&times;</button>
+            </div>
+          </div>`).join('') : `<p class="empty small">No documents yet.</p>`}
+        <button type="button" class="btn small" id="docAdd" style="width:100%; margin-top:8px;">+ Add link</button>
+        <div class="modal-actions">
+          <button class="btn primary" id="docClose" style="flex:1;">Close</button>
+        </div>
+      </div>`;
+    const m = bg.querySelector('.modal');
+    if(m) m.scrollTop = scrollTop;
+    wire();
+  }
+  function wire(){
+    bg.querySelector('#docAdd').addEventListener('click', () => {
+      project.documents.push({ id: uid(), label:'', url:'' });
+      paint();
+      const inputs = bg.querySelectorAll('[data-docfield="label"]');
+      if(inputs.length) inputs[inputs.length-1].focus();
+    });
+    bg.querySelector('#docClose').addEventListener('click', () => { bg.remove(); render(); });
+    bg.querySelectorAll('[data-removedoc]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        project.documents = project.documents.filter(d => d.id !== btn.dataset.removedoc);
+        paint();
+        persist();
+      });
+    });
+    bg.querySelectorAll('[data-docfield]').forEach(el => {
+      const d = project.documents.find(x => x.id === el.dataset.docid);
+      if(!d) return;
+      el.addEventListener('input', () => { d[el.dataset.docfield] = el.value; });
+      el.addEventListener('change', () => {
+        if(el.dataset.docfield === 'url'){
+          d.url = normUrl(el.value);
+          if(!d.label.trim()) d.label = hostOf(d.url);
+          paint(); // shows the Open button; the name box doesn't repaint so tabbing between boxes keeps focus
+        }
+        persist();
+      });
+    });
+  }
+  bg.addEventListener('click', ev => { if(ev.target === bg){ bg.remove(); render(); } });
+  presentPanel(bg, null);
+  paint();
+}
+
 function globalLatestNote(){
   let latest = null, proj = null;
   PROJECTS.forEach(p => {
@@ -2170,8 +2394,26 @@ function renderHeader(activeApp){
       <button class="topbar-calbtn" id="calBtn" aria-label="Project calendar" title="Project calendar">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
       </button>
+      <button class="topbar-calbtn" id="themeBtn" data-themetoggle aria-label="Toggle dark mode" title="Dark mode">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>
+      </button>
     </div>`;
 }
+
+// ---------- dark mode: follows the system until toggled, then remembers the choice ----------
+function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); }
+(function initTheme(){
+  let t = null;
+  try{ t = localStorage.getItem('tln-theme'); }catch(e){}
+  if(t !== 'dark' && t !== 'light') t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  applyTheme(t);
+  document.addEventListener('click', ev => {
+    if(!ev.target.closest('[data-themetoggle]')) return;
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try{ localStorage.setItem('tln-theme', next); }catch(e){}
+  });
+})();
 
 function renderNotifyBanner(){
   const g = globalLatestNote();
@@ -2243,6 +2485,7 @@ function renderBoardProjectPicker(app){
     <div class="card" data-openboard="${p.id}" style="cursor:pointer;">
       <div class="dot ${projectDotClass(p)}"></div>
       <div class="card-body"><div class="name">${esc(p.name)}</div></div>
+      <button type="button" class="mo-btn" data-boardanimatic="${p.id}" title="${p.animatic ? 'Play or replace animatic' : 'Upload animatic'}" aria-label="Animatic" style="${p.animatic ? 'color:var(--text);' : 'color:var(--text-dim);'}">${BOARD_ICONS.animatic}</button>
       <button type="button" class="dot-btn" data-boarddoneproj="${p.id}" title="Mark storyboards done" aria-label="Mark storyboards done"><span class="dot ${p.storyboardsDone?'wrap':'blank'}" style="margin-top:0;"></span></button>
     </div>`;
   app.innerHTML = `
@@ -2258,6 +2501,13 @@ function renderBoardProjectPicker(app){
   `;
   app.querySelectorAll('[data-openboard]').forEach(el => {
     el.addEventListener('click', () => goBoardProject(el.dataset.openboard, 0));
+  });
+  app.querySelectorAll('[data-boardanimatic]').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const p = byId(btn.dataset.boardanimatic);
+      if(p) openAnimaticModal(p, () => renderBoardProjectPicker(app));
+    });
   });
   app.querySelectorAll('[data-boarddoneproj]').forEach(btn => {
     btn.addEventListener('click', async (ev) => {
@@ -2280,6 +2530,7 @@ const BOARD_ICONS = {
   shotlist: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>',
   equipment: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="6" rx="1.5"/><circle cx="12" cy="6" r="1.1" fill="currentColor" stroke="none"/><path d="M12 9v4"/><path d="M12 13 5 21"/><path d="M12 13v8"/><path d="M12 13 19 21"/></svg>',
   lighting: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg>',
+  animatic: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z"/></svg>',
   check: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 // small popup used for the Scene/Camera filter pickers in the storyboard viewer
@@ -2303,45 +2554,163 @@ function openBoardFilterPicker(title, options, onPick){
   });
 }
 let boardClockInterval = null;
-// works out the real clock window allotted to one shot on its shooting day, dividing the day's
-// scheduled start/end (minus any lunch break) equally across that day's shots, in shot-list order —
-// same "time per shot" idea the Shooting schedule step already uses, just resolved for one shot
+// works out the real clock window allotted to one shot on its shooting day: the Shooting schedule's
+// time for that shot's scene (with any edited scene minutes and set up changes) divided equally
+// across the shots in that scene, in shot-list order
 function computeShotTimeSlot(project, shot){
   const schedStep = (project.steps || []).find(isScheduleStep);
-  const shotStep = (project.steps || []).find(isShotListStep);
-  if(!schedStep || !schedStep.scheduleDays || !shot.day || !shotStep) return null;
+  if(!schedStep || !schedStep.scheduleDays || !shot.day) return null;
   const dayData = schedStep.scheduleDays.find(d => d.date === shot.day);
   if(!dayData || !dayData.start || !dayData.end) return null;
-  const dayShots = (shotStep.shotListRows || []).filter(s => s.day === shot.day);
-  const idxInDay = dayShots.findIndex(s => s.id === shot.id);
-  if(idxInDay === -1) return null;
-
-  const toMinutes = (hhmm) => { const [h,m] = (hhmm||'0:0').split(':').map(Number); return (h||0)*60 + (m||0); };
-  const startMin = toMinutes(dayData.start);
-  let endMin = toMinutes(dayData.end);
-  if(endMin <= startMin) endMin += 24*60;
-  const lunchStartMin = (dayData.lunch && dayData.lunchStart) ? toMinutes(dayData.lunchStart) : null;
-  const lunchDur = dayData.lunch ? (parseInt(dayData.lunchMinutes,10) || 60) : 0;
-  const totalWorkMin = Math.max(1, (endMin - startMin) - lunchDur);
-  const perShot = totalWorkMin / dayShots.length;
-
-  const addWorkMinutes = (fromMin, minutesToAdd) => {
-    if(lunchStartMin !== null && fromMin < lunchStartMin && fromMin + minutesToAdd > lunchStartMin){
-      const before = lunchStartMin - fromMin;
-      return lunchStartMin + lunchDur + (minutesToAdd - before);
-    }
-    return fromMin + minutesToAdd;
-  };
-  const slotStartMin = addWorkMinutes(startMin, perShot * idxInDay);
-  const slotEndMin = addWorkMinutes(startMin, perShot * (idxInDay + 1));
-
+  migrateScheduleDay(dayData);
+  const key = shot.scene || '(No scene set)';
+  const { items } = allocateScenes(dayData, scheduleSceneGroups(project, shot.day));
+  const item = items.find(x => !x.isLunch && !x.isChange && x.scene === key);
+  if(!item || item.startMin === null) return null;
+  const sceneRows = scheduleRelevantRows(project, shot.day).filter(r => (r.scene || '(No scene set)') === key);
+  const idxInScene = sceneRows.findIndex(r => r.id === shot.id);
+  if(idxInScene === -1) return null;
+  const perShot = (item.endMin - item.startMin) / sceneRows.length;
   const toDate = (minutesFromMidnight) => {
     const d = new Date(shot.day + 'T00:00:00');
-    d.setMinutes(d.getMinutes() + minutesFromMidnight);
+    d.setMinutes(d.getMinutes() + Math.round(minutesFromMidnight));
     return d;
   };
-  return { startDate: toDate(slotStartMin), endDate: toDate(slotEndMin) };
+  return { startDate: toDate(item.startMin + perShot * idxInScene), endDate: toDate(item.startMin + perShot * (idxInScene + 1)) };
 }
+// ---------- animatic: one uploaded video per project, kept in a Supabase Storage bucket ----------
+// (videos are far too big for the key-value table the rest of the app uses). One-time setup in the
+// Supabase SQL editor is needed — the upload box shows the exact SQL if the bucket isn't there yet.
+const ANIMATIC_BUCKET = 'animatics';
+const ANIMATIC_SETUP_SQL = `insert into storage.buckets (id, name, public)
+values ('animatics', 'animatics', true)
+on conflict (id) do nothing;
+
+create policy "animatics read" on storage.objects for select using (bucket_id = 'animatics');
+create policy "animatics upload" on storage.objects for insert with check (bucket_id = 'animatics');
+create policy "animatics update" on storage.objects for update using (bucket_id = 'animatics');
+create policy "animatics delete" on storage.objects for delete using (bucket_id = 'animatics');`;
+function animaticObjectPath(path){ return path.split('/').map(encodeURIComponent).join('/'); }
+function animaticPublicUrl(path){ return `${window.__supabase.url}/storage/v1/object/public/${ANIMATIC_BUCKET}/${animaticObjectPath(path)}`; }
+// XMLHttpRequest rather than fetch so the upload can report progress
+function uploadAnimaticFile(file, path, onProgress){
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${window.__supabase.url}/storage/v1/object/${ANIMATIC_BUCKET}/${animaticObjectPath(path)}`);
+    xhr.setRequestHeader('apikey', window.__supabase.key);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + window.__supabase.key);
+    xhr.setRequestHeader('x-upsert', 'true');
+    xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
+    xhr.upload.onprogress = (ev) => { if(ev.lengthComputable && onProgress) onProgress(ev.loaded / ev.total); };
+    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject({ status: xhr.status, body: xhr.responseText || '' });
+    xhr.onerror = () => reject({ status: 0, body: '' });
+    xhr.send(file);
+  });
+}
+async function deleteAnimaticFile(path){
+  try{
+    await fetch(`${window.__supabase.url}/storage/v1/object/${ANIMATIC_BUCKET}/${animaticObjectPath(path)}`, {
+      method: 'DELETE',
+      headers: { 'apikey': window.__supabase.key, 'Authorization': 'Bearer ' + window.__supabase.key },
+    });
+  }catch(e){ /* an orphaned file is harmless */ }
+}
+function openAnimaticModal(project, onChange){
+  document.querySelectorAll('.modal-bg[data-animatic="1"]').forEach(el => el.remove());
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg';
+  bg.dataset.animatic = '1';
+  let busy = false, progress = 0, error = null; // error: { kind:'setup'|'size'|'other', text }
+  const fmtSize = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+
+  function paint(){
+    const a = project.animatic;
+    bg.innerHTML = `
+      <div class="modal">
+        <h3>Animatic</h3>
+        <div style="font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:10px;">${esc(project.name)}</div>
+        ${a ? `
+          <video id="anVideo" controls playsinline preload="metadata" src="${esc(a.url)}" style="width:100%; max-height:60vh; background:#000; border-radius:8px;"></video>
+          <div class="timeline-hint" style="margin-top:6px;">${esc(a.name || 'animatic')} · ${esc(fmtSize(a.size || 0))} · uploaded ${esc(timeAgo(a.uploadedAt))}${a.uploadedBy ? ' by ' + esc(a.uploadedBy) : ''}</div>
+        ` : `<p class="empty small">No animatic uploaded yet. Upload an exported video (MP4 works best) to play it from here.</p>`}
+        ${busy ? `<div class="an-progress" style="margin:10px 0;"><div id="anBar" style="width:${Math.round(progress*100)}%;"></div></div><div class="timeline-hint" id="anPct">Uploading… ${Math.round(progress*100)}%</div>` : ''}
+        ${error && error.kind === 'setup' ? `
+          <div class="timeline-hint" style="color:var(--out); margin-top:10px;">The video storage isn't set up yet. Paste this into the Supabase SQL editor and run it once, then try again:</div>
+          <pre class="an-sql" id="anSql">${esc(ANIMATIC_SETUP_SQL)}</pre>
+          <button type="button" class="btn small" id="anCopy">Copy SQL</button>` : ''}
+        ${error && error.kind !== 'setup' ? `<div class="timeline-hint" style="color:var(--out); margin-top:10px;">${esc(error.text)}</div>` : ''}
+        <input type="file" id="anFile" accept="video/*" style="display:none;">
+        <div class="modal-actions">
+          <button class="btn ghost" id="anClose" style="flex:1;">Close</button>
+          <button class="btn primary" id="anPick" style="flex:1;" ${busy ? 'disabled' : ''}>${a ? 'Replace video' : 'Upload video'}</button>
+        </div>
+        ${a && !busy ? `<button class="btn danger small" id="anRemove" style="margin-top:10px;">Remove animatic</button>` : ''}
+      </div>`;
+    wire();
+  }
+
+  async function startUpload(file){
+    if(!file) return;
+    if(!(file.type || '').startsWith('video/')){ error = { kind:'other', text:'That file is not a video.' }; paint(); return; }
+    busy = true; progress = 0; error = null; paint();
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '-');
+    const path = `${project.id}/${Date.now()}-${safeName}`;
+    try{
+      await uploadAnimaticFile(file, path, (f) => {
+        progress = f;
+        const bar = bg.querySelector('#anBar'), pct = bg.querySelector('#anPct');
+        if(bar) bar.style.width = Math.round(f*100) + '%';
+        if(pct) pct.textContent = 'Uploading… ' + Math.round(f*100) + '%';
+      });
+      const old = project.animatic;
+      project.animatic = { path, url: animaticPublicUrl(path), name: file.name, size: file.size, uploadedAt: new Date().toISOString(), uploadedBy: getContributorName() || '' };
+      touchProject(project);
+      const ok = await saveProjects();
+      if(old && old.path) deleteAnimaticFile(old.path);
+      busy = false;
+      if(!ok) error = { kind:'other', text:'The video uploaded but saving failed — try again.' };
+      else showToast('Animatic uploaded');
+      paint();
+      if(onChange) onChange();
+    }catch(e){
+      busy = false;
+      const body = (e && e.body) || '';
+      if(e && (e.status === 404 || /bucket not found|row-level security|unauthorized|not found/i.test(body))) error = { kind:'setup' };
+      else if(e && (e.status === 413 || /exceeded|too large|maximum allowed/i.test(body))) error = { kind:'size', text:`That video is too big for your Supabase plan (${fmtSize(file.size)}). The free plan allows 50 MB per file — export a smaller H.264 MP4, or raise the limit in Supabase → Storage settings.` };
+      else error = { kind:'other', text: e && e.status === 0 ? 'Upload failed — check your connection and try again.' : `Upload failed (${e && e.status}). ${body.slice(0, 120)}` };
+      paint();
+    }
+  }
+
+  function wire(){
+    bg.querySelector('#anClose').addEventListener('click', () => bg.remove());
+    const fileEl = bg.querySelector('#anFile');
+    bg.querySelector('#anPick').addEventListener('click', () => fileEl.click());
+    fileEl.addEventListener('change', () => startUpload(fileEl.files[0]));
+    const copy = bg.querySelector('#anCopy');
+    if(copy) copy.addEventListener('click', async () => {
+      try{ await navigator.clipboard.writeText(ANIMATIC_SETUP_SQL); showToast('SQL copied'); }
+      catch(e){ const r = document.createRange(); r.selectNodeContents(bg.querySelector('#anSql')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); showToast('Press Ctrl/Cmd+C to copy'); }
+    });
+    const rm = bg.querySelector('#anRemove');
+    if(rm) rm.addEventListener('click', () => {
+      openConfirmModal('Remove this animatic video? The file is deleted for everyone.', async () => {
+        const old = project.animatic;
+        delete project.animatic;
+        touchProject(project);
+        const ok = await saveProjects();
+        if(old && old.path) deleteAnimaticFile(old.path);
+        showToast(ok ? 'Animatic removed' : 'Save failed', !ok);
+        paint();
+        if(onChange) onChange();
+      });
+    });
+  }
+  bg.addEventListener('click', ev => { if(ev.target === bg && !busy) bg.remove(); });
+  document.body.appendChild(bg);
+  paint();
+}
+
 function formatBoardCountdown(ms){
   const sign = ms < 0 ? '−' : '';
   ms = Math.abs(ms);
@@ -2436,6 +2805,7 @@ function renderBoardShotViewer(app, project, shotIdx){
           <button type="button" class="board-tool-btn ${openPanel==='shotlist'?'active':''}" data-boardtool="shotlist" title="Shot list">${BOARD_ICONS.shotlist}</button>
           <button type="button" class="board-tool-btn ${openPanel==='equipment'?'active':''}" data-boardtool="equipment" title="Equipment">${BOARD_ICONS.equipment}</button>
           <button type="button" class="board-tool-btn ${openPanel==='lighting'?'active':''}" data-boardtool="lighting" title="Lighting">${BOARD_ICONS.lighting}</button>
+          <button type="button" class="board-tool-btn" data-boardtool="animatic" title="Animatic">${BOARD_ICONS.animatic}</button>
         </div>
       </div>
     </div>
@@ -2490,6 +2860,7 @@ function renderBoardShotViewer(app, project, shotIdx){
   app.querySelectorAll('[data-boardtool]').forEach(btn => {
     btn.addEventListener('click', () => {
       const tool = btn.dataset.boardtool;
+      if(tool === 'animatic'){ openAnimaticModal(project); return; }
       app.dataset.boardPanel = (openPanel === tool) ? '' : tool;
       renderBoardShotViewer(app, project, shotIdx);
     });
@@ -2596,10 +2967,10 @@ function renderList(app, tab){
     ${renderHeader('projects')}
     ${renderNotifyBanner()}
     <div class="toolbar">
+      <button class="btn primary round-add" id="addBtn" aria-label="New project" title="New project">+</button>
       ${searchOpen
         ? `<input type="search" id="searchBox" placeholder="Search projects…" value="${esc(app.dataset.search||'')}">`
         : `<button class="sq-btn" id="searchToggle" aria-label="Search"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></button>`}
-      <button class="btn primary round-add" id="addBtn" aria-label="New project" title="New project">+</button>
     </div>
     <div class="section-label"><span>Projects (${current.length})</span></div>
     ${current.length ? current.map(p => cardHtml(p, 'current')).join('') : `<div class="card-sub" style="margin-bottom:14px; font-family:var(--mono); font-size:11px; color:var(--text-dim);">Nothing in progress — start a project.</div>`}
@@ -2859,9 +3230,14 @@ function renderDetail(app, p){
     <div style="padding-top:16px;">
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <button class="back" id="backBtn">← All projects</button>
-      <button class="sq-btn" id="projCalBtn" aria-label="Project calendar" title="Project calendar">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
-      </button>
+      <div style="display:flex; gap:8px;">
+        <button class="sq-btn" id="inviteBtn" aria-label="Send invite" title="Send invite">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg>
+        </button>
+        <button class="sq-btn" id="projCalBtn" aria-label="Project calendar" title="Project calendar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
+        </button>
+      </div>
     </div>
     <div class="detail-header">
       <div class="tally-big ${dotClass}"></div>
@@ -2925,6 +3301,11 @@ function renderDetail(app, p){
       </div>
     </details>
 
+    <div class="contents-row" id="docsRow" role="button" tabindex="0" style="cursor:pointer; margin-top:12px;">
+      <div class="name">Documents<small>${(p.documents||[]).length ? (p.documents.length + ' link' + (p.documents.length===1?'':'s')) : 'Keep every link for this project in one place'}</small></div>
+      <div class="step-actions"><span style="font-size:18px; color:var(--text-dim);">&rsaquo;</span></div>
+    </div>
+
     ${totalHidden ? `<button class="btn-text" id="toggleHiddenBtn" style="margin-top:8px;">${showHidden ? 'Hide' : 'Show'} ${totalHidden} hidden step${totalHidden>1?'s':''}</button>` : ''}
     ${stageSections}
 
@@ -2934,6 +3315,10 @@ function renderDetail(app, p){
 
   document.getElementById('backBtn').addEventListener('click', () => goTab(p.status));
   document.getElementById('projCalBtn').addEventListener('click', () => goProjectCalendar(p.id));
+  document.getElementById('inviteBtn').addEventListener('click', () => openInviteModal(p));
+  const docsRow = document.getElementById('docsRow');
+  docsRow.addEventListener('click', () => openDocumentsModal(p));
+  docsRow.addEventListener('keydown', ev => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); openDocumentsModal(p); } });
   document.getElementById('renameBtn').addEventListener('click', () => openEditProjectModal(p));
   const ackDetailBtn = document.getElementById('ackDetailNote');
   if(ackDetailBtn) ackDetailBtn.addEventListener('click', async () => {
@@ -2963,7 +3348,7 @@ function renderDetail(app, p){
       else if(isEquipmentListsStep(step)) openEquipmentListsModal(p, step, true);
       else if(isBoardingStep(step)) openPerShotImagesModal(p, step, true, shotBoardKey, 'Storyboard images');
       else if(isLightingStep(step)) openPerShotImagesModal(p, step, true, shotLightKey, 'Lighting plan images');
-      else openStepModal(p, step, null, true);
+      else openStepNotesPanel(p, step, true);
     });
   });
   document.querySelectorAll('[data-donedot]').forEach(btn => {
@@ -3521,7 +3906,220 @@ function openMoodboardPanel(project, step, sideRight){
   });
 }
 
+// ---------- Conceptualising board, powered by the tldraw SDK ----------
+// tldraw needs a license key to run on a real domain (it works on localhost without one). Get a
+// free 100-day trial key from tldraw.dev (or a commercial key) and paste it between the quotes —
+// keys are tied to the domain you host on. Leave blank while testing locally.
+const TLDRAW_LICENSE_KEY = '';
+const TLDRAW_VERSION = '5.5.2';
+const TLDRAW_REACT_VERSION = '19.2.1';
+function tldrawKey(stepId){ return 'tldraw:' + stepId; }
+
+let tldrawLibsPromise = null;
+function loadTldrawLibs(){
+  if(!tldrawLibsPromise){
+    if(!document.getElementById('tldrawCss')){
+      const link = document.createElement('link');
+      link.id = 'tldrawCss';
+      link.rel = 'stylesheet';
+      link.href = `https://cdn.jsdelivr.net/npm/tldraw@${TLDRAW_VERSION}/tldraw.css`;
+      document.head.appendChild(link);
+    }
+    const r = TLDRAW_REACT_VERSION, v = TLDRAW_VERSION;
+    tldrawLibsPromise = Promise.all([
+      import(`https://esm.sh/react@${r}`),
+      import(`https://esm.sh/react-dom@${r}/client?deps=react@${r}`),
+      import(`https://esm.sh/tldraw@${v}?deps=react@${r},react-dom@${r}`),
+    ]).then(([React, ReactDOM, TL]) => ({ React, ReactDOM, TL }))
+      .catch(e => { tldrawLibsPromise = null; throw e; });
+  }
+  return tldrawLibsPromise;
+}
+
+async function loadTldrawBoard(stepId){
+  try{
+    const res = await window.storage.get(tldrawKey(stepId), true);
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){ /* fall through to a fresh board */ }
+  return null;
+}
+async function saveTldrawBoard(stepId, data){
+  const json = JSON.stringify(data);
+  if(json.length > 4600000) return { ok:false, reason:'full' };
+  try{ await window.storage.set(tldrawKey(stepId), json, true); return { ok:true }; }
+  catch(e){ console.error('whiteboard save failed', e); return { ok:false, reason:'error' }; }
+}
+
+// puts the five default labels (or an older board's images, text and pen strokes) onto a tldraw canvas
+function populateTldrawBoard(editor, TL, legacy){
+  const hexToColor = { '#17181a':'black', '#009cde':'blue', '#d6001c':'red', '#d9a404':'yellow', '#275d38':'green' };
+  const textSize = fs => fs >= 34 ? 'xl' : fs >= 22 ? 'l' : fs >= 16 ? 'm' : 's';
+  const strokeSize = w => w <= 2 ? 's' : w <= 4 ? 'm' : w <= 8 ? 'l' : 'xl';
+  const shapes = [];
+  const assets = [];
+  if(!legacy || !((legacy.objects||[]).length || (legacy.strokes||[]).length)){
+    const labels = ['Lighting', 'Camera/Lens', 'Costume', 'Props', 'Location'];
+    const cx = 650, cy = 475, radius = 230;
+    labels.forEach((text, i) => {
+      const angle = -Math.PI/2 + i * (2*Math.PI/labels.length);
+      shapes.push({ id: TL.createShapeId(), type:'text', x: Math.round(cx + radius*Math.cos(angle) - 60), y: Math.round(cy + radius*Math.sin(angle) - 16),
+        props: { richText: TL.toRichText(text), size:'l', autoSize:true, color:'black' } });
+    });
+  } else {
+    (legacy.objects || []).slice().sort((a,b) => (a.z||0) - (b.z||0)).forEach(o => {
+      if(o.type === 'image' && o.src){
+        const assetId = TL.AssetRecordType.createId();
+        assets.push(TL.AssetRecordType.create({ id: assetId, type:'image', typeName:'asset', props:{ name:'image', src:o.src, w:o.w, h:o.h, mimeType:'image/jpeg', isAnimated:false }, meta:{} }));
+        shapes.push({ id: TL.createShapeId(), type:'image', x:o.x, y:o.y, props:{ w:o.w, h:o.h, assetId } });
+      } else if(o.type === 'text'){
+        shapes.push({ id: TL.createShapeId(), type:'text', x:o.x, y:o.y,
+          props: { richText: TL.toRichText(o.text || ''), size: textSize(o.fontSize||22), autoSize:true, color: hexToColor[(o.color||'').toLowerCase()] || 'black' } });
+      }
+    });
+    (legacy.strokes || []).forEach(s => {
+      if(!s.points || s.points.length < 2) return;
+      const p0 = s.points[0];
+      try{
+        const pts = s.points.map(p => ({ x:+(p.x-p0.x).toFixed(1), y:+(p.y-p0.y).toFixed(1), z:0.5 }));
+        shapes.push({ id: TL.createShapeId(), type:'draw', x:p0.x, y:p0.y,
+          props: { segments:[{ type:'free', path: TL.b64Vecs.encodePoints(pts, 3), dim:3 }],
+                   isComplete:true, isClosed:false, isPen:false, color: hexToColor[(s.color||'').toLowerCase()] || 'black', size: strokeSize(s.width||4) } });
+      }catch(e){ console.warn('skipped a pen stroke while converting the old board', e); }
+    });
+  }
+  if(assets.length) editor.createAssets(assets);
+  if(shapes.length) editor.createShapes(shapes);
+}
+
 async function renderMoodboard(app, project, step){
+  app.innerHTML = `<div class="loading">Loading whiteboard…</div>`;
+  let libs;
+  try{ libs = await loadTldrawLibs(); }
+  catch(e){
+    console.error('tldraw failed to load', e);
+    showToast("Couldn't load the whiteboard — showing the basic board instead", true);
+    return renderMoodboardLegacy(app, project, step);
+  }
+  const { React, ReactDOM, TL } = libs;
+  let saved = await loadTldrawBoard(step.id);
+  let legacy = null;
+  if(!saved){ legacy = (await loadMoodboard(step.id)).board; } // an older board (or none) gets carried across
+  const meta = { notes: saved ? (saved.notes || '') : ((legacy && legacy.notes) || '') };
+
+  app.innerHTML = `
+    <div style="padding-top:16px;">
+    <button class="back" id="mbBack">← ${esc(project.name)}</button>
+    ${stepDateRangeFieldHtml(step, 'mb')}
+    <div class="mboard-toolbar">
+      <div>
+        <div class="mboard-title">${esc(step.title || 'Step')}</div>
+        <div class="eyebrow small" style="margin:2px 0 0;">MOODBOARD</div>
+      </div>
+      <div style="flex:1;"></div>
+      <button class="btn small" id="mbExport">Export</button>
+      <button class="btn small danger" id="mbClear">Clear board</button>
+      <button class="btn small" id="mbReset">Fit view</button>
+    </div>
+    <div class="mb-tl" id="mbTl"></div>
+    <div class="section-label"><span>Notes</span></div>
+    <textarea id="mbNotes" placeholder="Write any notes about this moodboard — themes, references, direction…" rows="4">${esc(meta.notes)}</textarea>
+    </div>`;
+
+  const mountEl = document.getElementById('mbTl');
+  let editor = null;
+  let saveTimer = null;
+  let dirty = false;
+  async function flush(){
+    clearTimeout(saveTimer); saveTimer = null;
+    if(!editor || !dirty) return true;
+    dirty = false;
+    const result = await saveTldrawBoard(step.id, { v:1, document: TL.getSnapshot(editor.store).document, notes: meta.notes });
+    if(!result.ok) showToast(result.reason === 'full' ? "This board is too full to save — export it, then delete some images" : 'Save failed', true);
+    return result.ok;
+  }
+  function scheduleSave(){ dirty = true; clearTimeout(saveTimer); saveTimer = setTimeout(flush, 700); }
+
+  const assetStore = {
+    async upload(asset, file){ const { dataUrl } = await processImageFile(file, 1000, 0.82); return { src: dataUrl }; },
+    resolve(asset){ return asset.props.src; },
+  };
+  const root = ReactDOM.createRoot(mountEl);
+  root.render(React.createElement('div', { style:{ position:'absolute', inset:0 } },
+    React.createElement(TL.Tldraw, {
+      licenseKey: TLDRAW_LICENSE_KEY || undefined,
+      snapshot: saved ? saved.document : undefined,
+      assets: assetStore,
+      onMount: (ed) => {
+        editor = ed;
+        window.__mbEditor = ed;
+        if(!saved){ populateTldrawBoard(ed, TL, legacy); dirty = true; }
+        ed.zoomToFit({ animation:{ duration:0 } });
+        const stop = ed.store.listen(scheduleSave, { source:'user', scope:'document' });
+        if(dirty) flush(); // save a freshly seeded/carried-over board straight away
+        return stop;
+      },
+    })));
+
+  // tear down once this board leaves the page (route change, panel closed, etc.)
+  const watcher = setInterval(async () => {
+    if(mountEl.isConnected) return;
+    clearInterval(watcher);
+    await flush();
+    root.unmount();
+    if(window.__mbEditor === editor) window.__mbEditor = null;
+  }, 800);
+
+  document.getElementById('mbBack').addEventListener('click', async () => { await flush(); goProject(project.id); });
+  const notesEl = document.getElementById('mbNotes');
+  notesEl.addEventListener('blur', () => { if(meta.notes === notesEl.value) return; meta.notes = notesEl.value; dirty = true; flush(); });
+  document.getElementById('mbReset').addEventListener('click', () => { if(editor) editor.zoomToFit({ animation:{ duration:200 } }); });
+  document.getElementById('mbClear').addEventListener('click', () => {
+    if(!editor) return;
+    const ids = [...editor.getCurrentPageShapeIds()];
+    if(!ids.length){ showToast('Board is already empty'); return; }
+    openConfirmModal('Clear everything on this moodboard? Export a copy first if you want to keep it.', async () => {
+      editor.deleteShapes(ids);
+      showToast('Board cleared');
+    });
+  });
+  document.getElementById('mbExport').addEventListener('click', async () => {
+    if(!editor) return;
+    const ids = [...editor.getCurrentPageShapeIds()];
+    if(!ids.length){ showToast('Nothing to export yet'); return; }
+    try{
+      const { blob } = await editor.toImage(ids, { format:'png', background:true, padding:32 });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(step.title || 'moodboard').toLowerCase().replace(/[^a-z0-9]+/g,'-')}-moodboard.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      showToast('Moodboard exported');
+    }catch(e){ console.error(e); showToast('Export failed', true); }
+  });
+  app.addEventListener('click', ev => {
+    const trigger = ev.target.closest('.dfield');
+    if(!trigger) return;
+    const rangeWrap = trigger.closest('[data-rangepicker="mb"]');
+    if(rangeWrap){
+      const triggers = rangeWrap.querySelectorAll('.dfield');
+      openDateRangePicker(triggers[0], triggers[1]);
+    }
+  });
+  app.addEventListener('change', async (ev) => {
+    const el = ev.target;
+    if(el.id === 'mbStart' || el.id === 'mbEnd'){
+      step.startDate = document.getElementById('mbStart') ? document.getElementById('mbStart').value : step.startDate;
+      step.endDate = document.getElementById('mbEnd') ? document.getElementById('mbEnd').value : step.endDate;
+      touchStep(step);
+      touchProject(project);
+      await saveProjects();
+    }
+  });
+}
+
+// the original hand-built board — only used as a fallback if the tldraw library can't be loaded
+async function renderMoodboardLegacy(app, project, step){
   app.innerHTML = `<div class="loading">Loading moodboard…</div>`;
   const { board, isNew } = await loadMoodboard(step.id);
   board.objects = board.objects || [];
@@ -6273,6 +6871,10 @@ function openEquipmentPickerModal(day, currentSelections, onSave){
   }
 
   function paint(){
+    const prevModal = bg.querySelector('.modal');
+    const prevScroll = prevModal ? prevModal.scrollTop : 0;
+    const prevList = bg.querySelector('.eq-pick-list');
+    const prevListScroll = prevList ? prevList.scrollTop : 0;
     const search = (bg.dataset.search || '').toLowerCase();
     const filtered = allItems.filter(e => !search || e.name.toLowerCase().includes(search) || (e.category||'').toLowerCase().includes(search));
     const crates = filtered.filter(e => e.type === 'crate');
@@ -6307,6 +6909,10 @@ function openEquipmentPickerModal(day, currentSelections, onSave){
           <button class="btn primary" id="eqSave" style="flex:1;">Done</button>
         </div>
       </div>`;
+    const newModal = bg.querySelector('.modal');
+    if(newModal) newModal.scrollTop = prevScroll;
+    const newList = bg.querySelector('.eq-pick-list');
+    if(newList) newList.scrollTop = prevListScroll;
     const searchBox = bg.querySelector('#eqSearch');
     searchBox.addEventListener('input', ev => {
       bg.dataset.search = ev.target.value;
@@ -6479,16 +7085,142 @@ function openEquipmentListsModal(project, step, sideRight){
   presentPanel(bg, step.id);
   paint();
 }
+// ---------- Shooting schedule maths (shared by the schedule panel and the on-set storyboard clock) ----------
+function schedToMin(hhmm){ const [h,m] = (hhmm||'').split(':').map(Number); return (h||0)*60 + (m||0); }
+function schedNum(v, dflt){ const n = parseFloat(v); return (isNaN(n) || n < 0) ? dflt : n; }
+function migrateScheduleDay(day){
+  if(!day || day.v2) return day;
+  // arrive / leave are fixed times the user typed — never shift them; set up, debrief and pack down
+  // are laid inside them
+  day.v2 = true;
+  return day;
+}
+// arrive → set up → debrief → shooting → pack down → leave. Every length can be edited per day;
+// pack down follows ¾ of the set up time unless it's been set by hand.
+function dayTimings(day){
+  if(!day || !day.start) return null;
+  const arrive = schedToMin(day.start);
+  const setupMins = schedNum(day.setupMinutes, 45);
+  const debriefMins = schedNum(day.debriefMinutes, 15);
+  const autoPack = Math.round(setupMins * 0.75);
+  const packMins = (day.packMinutes !== undefined && day.packMinutes !== '') ? schedNum(day.packMinutes, autoPack) : autoPack;
+  const setupEnd = arrive + setupMins;
+  const shootStart = setupEnd + debriefMins;
+  let leave = null, shootEnd = null;
+  if(day.end){
+    leave = schedToMin(day.end);
+    if(leave <= arrive) leave += 24*60;
+    shootEnd = leave - packMins;
+  }
+  return { arrive, setupMins, debriefMins, packMins, autoPack, setupEnd, shootStart, shootEnd, leave };
+}
+function scheduleRelevantRows(project, date){
+  const shotStep = (project.steps || []).find(isShotListStep);
+  if(!shotStep || !shotStep.shotListRows) return [];
+  // a single-shoot-day project (weddings, always exactly one day set at project creation) — every
+  // shot belongs to that one day regardless of what each row's own (often hidden/unset, sometimes
+  // stale from an old import) day value happens to be. Only projects with more than one shoot day
+  // need shots actually matched to a specific date.
+  return getShootDates(project).length <= 1 ? shotStep.shotListRows : shotStep.shotListRows.filter(r => r.day === date);
+}
+function scheduleSceneGroups(project, date){
+  const map = {};
+  scheduleRelevantRows(project, date).forEach(r => {
+    const key = r.scene || '(No scene set)';
+    if(!map[key]) map[key] = { count:0, cameras: new Set() };
+    map[key].count++;
+    // shooter assignment comes straight from whatever camera(s) are on that scene's shots —
+    // "A&B" (or shots split across both cameras) means both shooters are covering it
+    (r.camera || '').split(/[,&/]|\band\b/i).map(c => c.trim().toUpperCase()).filter(Boolean).forEach(c => map[key].cameras.add(c));
+  });
+  return Object.entries(map).map(([scene,data]) => ({
+    scene, count: data.count,
+    shooter: data.cameras.size > 1 ? 'Both' : (data.cameras.size === 1 ? [...data.cameras][0] : ''),
+  }));
+}
+// lays the scenes (plus lunch and any set up changes between scenes) across the shooting window —
+// from the end of debrief to the start of pack down. A scene with its own minutes keeps them; the
+// remaining time is shared out between the other scenes by shot count.
+function allocateScenes(day, groups){
+  const changes = day.setupChanges || {};
+  const sceneMins = day.sceneMinutes || {};
+  const customOf = g => { const n = parseFloat(sceneMins[g.scene]); return n > 0 ? n : null; };
+  const changeAfter = (g, idx) => (idx < groups.length - 1 && changes[g.scene] !== undefined) ? schedNum(changes[g.scene], 0) : null;
+  const t = dayTimings(day);
+  if(!t || t.shootEnd === null || !groups.length){
+    const items = [];
+    groups.forEach((g, idx) => {
+      items.push({ ...g, isLast: idx === groups.length - 1, range:null, startMin:null, endMin:null, minutes: customOf(g), perShotMin:null, custom: !!customOf(g) });
+      const ch = changeAfter(g, idx);
+      if(ch !== null) items.push({ isChange:true, scene:g.scene, minutes:ch, range:null });
+    });
+    return { items, overMin:0, tooShort:false };
+  }
+  const hasLunch = !!(day.lunch && day.lunchStart);
+  const lunchDur = hasLunch ? schedNum(day.lunchMinutes, 60) : 0;
+  let lunchStartMin = hasLunch ? schedToMin(day.lunchStart) : null;
+  if(hasLunch && lunchStartMin < t.arrive) lunchStartMin += 24*60;
+  const windowMin = t.shootEnd - t.shootStart;
+  const changeTotal = groups.reduce((s, g, idx) => s + (changeAfter(g, idx) || 0), 0);
+  const available = Math.max(0, windowMin - lunchDur - changeTotal);
+  const fixed = groups.reduce((s, g) => s + (customOf(g) || 0), 0);
+  const flex = groups.filter(g => !customOf(g));
+  const flexShots = flex.reduce((s, g) => s + g.count, 0) || 1;
+  const flexMin = Math.max(0, available - fixed);
+  const flexMins = {};
+  let assigned = 0;
+  flex.forEach((g, k) => {
+    const raw = (k === flex.length - 1) ? flexMin - assigned : flexMin * (g.count / flexShots);
+    const mins = Math.max(1, Math.round(raw));
+    flexMins[g.scene] = mins;
+    assigned += mins;
+  });
+  const clk = (a, b) => `${minutesToClock(a)} – ${minutesToClock(b)}`;
+  let cursor = t.shootStart;
+  let lunchInserted = !hasLunch;
+  const items = [];
+  groups.forEach((g, idx) => {
+    if(!lunchInserted && cursor >= lunchStartMin){
+      items.push({ isLunch:true, minutes:lunchDur, startMin:cursor, endMin:cursor+lunchDur, range: clk(cursor, cursor+lunchDur) });
+      cursor += lunchDur;
+      lunchInserted = true;
+    }
+    const mins = customOf(g) || flexMins[g.scene];
+    const st = cursor;
+    cursor += mins;
+    items.push({ ...g, isLast: idx === groups.length - 1, custom: !!customOf(g), minutes: mins, startMin: st, endMin: cursor, range: clk(st, cursor), perShotMin: Math.round(mins / g.count) });
+    const ch = changeAfter(g, idx);
+    if(ch !== null){
+      items.push({ isChange:true, scene:g.scene, minutes:ch, startMin:cursor, endMin:cursor+ch, range: clk(cursor, cursor+ch) });
+      cursor += ch;
+    }
+  });
+  if(!lunchInserted){
+    items.push({ isLunch:true, minutes:lunchDur, startMin:cursor, endMin:cursor+lunchDur, range: clk(cursor, cursor+lunchDur) });
+    cursor += lunchDur;
+  }
+  return { items, overMin: Math.max(0, Math.round(cursor - t.shootEnd)), tooShort: windowMin <= 0 };
+}
+
 function openScheduleModal(project, step, sideRight){
   closeSidePanels();
-  const shotStep = (project.steps || []).find(isShotListStep);
   const shootDates = getShootDates(project);
+  const shotStep = (project.steps || []).find(isShotListStep);
   const savedByDate = {};
-  (step.scheduleDays || []).forEach(d => { if(d.date) savedByDate[d.date] = d; });
+  (step.scheduleDays || []).forEach(d => { if(d.date){ migrateScheduleDay(d); savedByDate[d.date] = d; } });
   const days = shootDates.length
-    ? shootDates.map(d => Object.assign({ date:d, start:'', end:'', driveMinutes:'', uber:false, lunch:false, lunchStart:'', lunchMinutes:'60', others:[] }, savedByDate[d] || {}))
+    ? shootDates.map(d => Object.assign({ date:d, start:'', end:'', driveMinutes:'', uber:false, lunch:false, lunchStart:'', lunchMinutes:'60', others:[], setupMinutes:'45', debriefMinutes:'15', packMinutes:'', sceneMinutes:{}, setupChanges:{}, v2:true }, savedByDate[d] || {}))
     : (step.scheduleDays && step.scheduleDays.length ? JSON.parse(JSON.stringify(step.scheduleDays)) : []);
-  days.forEach(d => { if(!d.others) d.others = []; });
+  days.forEach(d => {
+    migrateScheduleDay(d);
+    if(!d.others) d.others = [];
+    if(d.setupMinutes === undefined) d.setupMinutes = '45';
+    if(d.debriefMinutes === undefined) d.debriefMinutes = '15';
+    if(d.packMinutes === undefined) d.packMinutes = '';
+    if(!d.sceneMinutes) d.sceneMinutes = {};
+    if(!d.setupChanges) d.setupChanges = {};
+  });
+  let editingScene = null; // which scene's "how long" box is open
 
   const budgetStep = (project.steps || []).find(isBudgetStep);
   // operators from the Budget step whose day-by-day breakdown includes this date
@@ -6506,115 +7238,70 @@ function openScheduleModal(project, step, sideRight){
   const bg = document.createElement('div');
   bg.className = 'modal-bg' + (sideRight ? ' side-right' : '');
 
-  // works backward from the shoot start time: debrief (15m), then equipment set up (45m),
-  // then drive time from the studio (plus 15m if it's an Uber) to get the leave-studio time.
+  // the day's fixed beats: leave studio → arrive location (the start time) → set up → debrief →
+  // shooting starts; and at the end: shooting ends → pack down → leave location (the end time)
   function morningSchedule(day){
-    if(!day.start) return null;
-    const [h,m] = day.start.split(':').map(Number);
-    const startMin = h*60+m;
-    const debriefStart = startMin - 15;
-    const setupStart = debriefStart - 45;
-    const arriveLocation = setupStart;
+    const t = dayTimings(day);
+    if(!t) return null;
     const driveMin = (parseFloat(day.driveMinutes) || 0) + (day.uber ? 15 : 0);
-    const leaveStudio = arriveLocation - driveMin;
+    const c = minutesToClock;
     return {
-      leaveStudio: minutesToClock(leaveStudio),
-      arriveLocation: minutesToClock(arriveLocation),
-      setupRange: `${minutesToClock(setupStart)} – ${minutesToClock(debriefStart)}`,
-      debriefRange: `${minutesToClock(debriefStart)} – ${minutesToClock(startMin)}`,
-      startClock: minutesToClock(startMin),
+      leaveStudio: c(t.arrive - driveMin),
+      arriveLocation: c(t.arrive),
+      setupRange: `${c(t.arrive)} – ${c(t.setupEnd)}`,
+      debriefRange: `${c(t.setupEnd)} – ${c(t.shootStart)}`,
+      startClock: c(t.shootStart),
       driveMin,
+      end: t.shootEnd === null ? null : {
+        wrapClock: c(t.shootEnd),
+        packRange: `${c(t.shootEnd)} – ${c(t.leave)}`,
+        leaveClock: c(t.leave),
+      },
     };
   }
-
-  function sceneGroups(date){
-    if(!shotStep || !shotStep.shotListRows) return [];
-    // a single-shoot-day project (weddings, always exactly one day set at project creation) — every
-    // shot belongs to that one day regardless of what each row's own (often hidden/unset, sometimes
-    // stale from an old import) day value happens to be. Only projects with more than one shoot day
-    // need shots actually matched to a specific date.
-    const relevantRows = shootDates.length <= 1
-      ? shotStep.shotListRows
-      : shotStep.shotListRows.filter(r => r.day === date);
-    const map = {};
-    relevantRows.forEach(r => {
-      const key = r.scene || '(No scene set)';
-      if(!map[key]) map[key] = { count:0, cameras: new Set() };
-      map[key].count++;
-      // shooter assignment comes straight from whatever camera(s) are on that scene's shots —
-      // "A&B" (or shots split across both cameras) means both shooters are covering it
-      (r.camera || '').split(/[,&/]|\band\b/i).map(c => c.trim().toUpperCase()).filter(Boolean).forEach(c => map[key].cameras.add(c));
-    });
-    return Object.entries(map).map(([scene,data]) => ({
-      scene, count: data.count,
-      shooter: data.cameras.size > 1 ? 'Both' : (data.cameras.size === 1 ? [...data.cameras][0] : ''),
-    }));
+  function morningItemsHtml(morning){
+    return `
+      <div class="sched-item"><div class="sched-item-scene">Leave studio</div><div class="sched-item-meta">${esc(morning.leaveStudio)}</div></div>
+      ${morning.driveMin > 0 ? `<div class="sched-item sched-drive"><div class="sched-item-scene">Driving</div><div class="sched-item-meta">${morning.driveMin} min</div></div>` : ''}
+      <div class="sched-item"><div class="sched-item-scene">Arrive at location</div><div class="sched-item-meta">${esc(morning.arriveLocation)}</div></div>
+      <div class="sched-item"><div class="sched-item-scene">Equipment set up</div><div class="sched-item-meta">${esc(morning.setupRange)}</div></div>
+      <div class="sched-item"><div class="sched-item-scene">Debrief</div><div class="sched-item-meta">${esc(morning.debriefRange)}</div></div>
+      <div class="sched-item"><div class="sched-item-scene">Start shooting</div><div class="sched-item-meta">${esc(morning.startClock)}</div></div>`;
+  }
+  function endItemsHtml(morning){
+    if(!morning || !morning.end) return '';
+    return `
+      <div class="sched-item"><div class="sched-item-scene">Shooting ends</div><div class="sched-item-meta">${esc(morning.end.wrapClock)}</div></div>
+      <div class="sched-item"><div class="sched-item-scene">Pack down</div><div class="sched-item-meta">${esc(morning.end.packRange)}</div></div>
+      <div class="sched-item"><div class="sched-item-scene">Leave location</div><div class="sched-item-meta">${esc(morning.end.leaveClock)}</div></div>`;
   }
 
-  function allocate(day, groups){
-    if(!day.start || !day.end || !groups.length) return groups.map(g => ({ ...g, range:null, perShotMin:null }));
-    const [sh,sm] = day.start.split(':').map(Number);
-    const [eh,em] = day.end.split(':').map(Number);
-    let totalMin = (eh*60+em) - (sh*60+sm);
-    if(totalMin <= 0) totalMin += 24*60;
-    const hasLunch = !!(day.lunch && day.lunchStart);
-    const lunchDur = hasLunch ? (parseFloat(day.lunchMinutes) || 60) : 0;
-    const driveTimes = day.driveTimes || {};
-    const totalDriveMin = groups.reduce((s,g) => s + (parseFloat(driveTimes[g.scene]) || 0), 0);
-    const shootingMin = Math.max(1, totalMin - lunchDur - totalDriveMin);
-    const totalShots = groups.reduce((s,g) => s+g.count, 0) || 1;
-    let lunchStartMin = null;
-    if(hasLunch){
-      const [lh,lm] = day.lunchStart.split(':').map(Number);
-      lunchStartMin = lh*60+lm;
-    }
-    let cursor = sh*60+sm;
-    const dayEndMin = sh*60+sm + totalMin; // exact end of shooting, in the same minute-numbering cursor uses
-    let lunchInserted = !hasLunch;
-    const result = [];
-    groups.forEach((g, idx) => {
-      if(!lunchInserted && cursor >= lunchStartMin){
-        result.push({ isLunch:true, range: `${minutesToClock(cursor)} – ${minutesToClock(cursor+lunchDur)}` });
-        cursor += lunchDur;
-        lunchInserted = true;
-      }
-      const driveMin = parseFloat(driveTimes[g.scene]) || 0;
-      if(driveMin > 0){
-        result.push({ isDrive:true, scene: g.scene, driveMin, range: `${minutesToClock(cursor)} – ${minutesToClock(cursor+driveMin)}` });
-        cursor += driveMin;
-      }
-      // a manually-set scene time pins that scene's start — everything from here follows on from it
-      const customTime = (day.sceneTimes || {})[g.scene];
-      if(customTime){
-        const [ch,cm] = customTime.split(':').map(Number);
-        cursor = ch*60+cm;
-      }
-      const st = cursor;
-      const isLast = idx === groups.length - 1;
-      // the last scene always runs to the actual end of shooting, rather than whatever the
-      // proportional split rounds to (which can land a minute or two short)
-      cursor = isLast ? Math.max(dayEndMin, st + 1) : cursor + Math.max(1, Math.round(shootingMin * (g.count/totalShots)));
-      result.push({ ...g, range: `${minutesToClock(st)} – ${minutesToClock(cursor)}`, perShotMin: Math.round((cursor-st)/g.count) });
-    });
-    if(!lunchInserted && hasLunch){
-      result.push({ isLunch:true, range: `${minutesToClock(cursor)} – ${minutesToClock(cursor+lunchDur)}` });
-    }
-    return result;
+  const sceneGroups = (date) => scheduleSceneGroups(project, date);
+  const sceneKey = (i, scene) => i + '::' + encodeURIComponent(scene);
+  function parseSceneKey(key){
+    const sep = key.indexOf('::');
+    return { dayIdx: parseInt(key.slice(0, sep), 10), scene: decodeURIComponent(key.slice(sep + 2)) };
   }
-  // A/B/Both timeline for one shooter — every scene block (in order) that shooter covers
-  // that shooter's scenes in order, with a "Driving" line inserted wherever the scene right
-  // before it in the day (regardless of who shot it) has a drive time set
-  function shooterTimeline(allocated, letter){
+  // what a scene would get if it had no minutes of its own
+  function suggestedMinutes(day, groups, scene){
+    const clone = Object.assign({}, day, { sceneMinutes: Object.assign({}, day.sceneMinutes) });
+    delete clone.sceneMinutes[scene];
+    const hit = allocateScenes(clone, groups).items.find(x => !x.isLunch && !x.isChange && x.scene === scene);
+    return hit && hit.minutes !== null ? hit.minutes : null;
+  }
+  // A/B/Both timeline for one shooter — every scene block (in order) that shooter covers, with any
+  // set up change that came right before it
+  function shooterTimeline(items, letter){
     const result = [];
-    let pendingDrive = null;
-    allocated.forEach(g => {
-      if(g.isLunch){ pendingDrive = null; return; }
-      if(g.isDrive){ pendingDrive = g; return; }
+    let pendingChange = null;
+    items.forEach(g => {
+      if(g.isLunch){ pendingChange = null; return; }
+      if(g.isChange){ pendingChange = g; return; }
       if(g.shooter === letter || g.shooter === 'Both'){
-        if(pendingDrive) result.push({ isDrive:true, driveMin: pendingDrive.driveMin });
+        if(pendingChange) result.push(pendingChange);
         result.push(g);
       }
-      pendingDrive = null;
+      pendingChange = null;
     });
     return result;
   }
@@ -6626,12 +7313,24 @@ function openScheduleModal(project, step, sideRight){
   function dayHeadAndTimeFields(day, i){
     const dayLabel = shootDates.length ? `Day ${i+1}` : `Shoot day`;
     const dateLabel = day.date ? fmtDate(day.date) : 'No date set';
+    const t = dayTimings(day);
+    const autoPack = Math.round(schedNum(day.setupMinutes, 45) * 0.75);
+    const packShown = (day.packMinutes !== undefined && day.packMinutes !== '') ? day.packMinutes : String(autoPack);
     return `
         <div class="sched-day-head"><span class="loc-day">${esc(dayLabel)}</span><span class="loc-date">${esc(dateLabel)}</span></div>
         <div class="budget-op-fields">
-          <div class="budget-op-field"><label>Start time</label>${timeFieldHtml('schedtime-start-' + i, day.start)}</div>
-          <div class="budget-op-field"><label>End time</label>${timeFieldHtml('schedtime-end-' + i, day.end)}</div>
+          <div class="budget-op-field"><label>Arrive at location</label>${timeFieldHtml('schedtime-start-' + i, day.start)}</div>
+          <div class="budget-op-field"><label>Leave location</label>${timeFieldHtml('schedtime-end-' + i, day.end)}</div>
         </div>
+        <div class="budget-op-fields" style="margin-top:8px;">
+          <div class="budget-op-field"><label>Equipment set up (mins)</label><input type="number" inputmode="numeric" min="0" data-schedfield="setupMinutes" data-idx="${i}" value="${esc(day.setupMinutes)}" placeholder="45"></div>
+          <div class="budget-op-field"><label>Debrief (mins)</label><input type="number" inputmode="numeric" min="0" data-schedfield="debriefMinutes" data-idx="${i}" value="${esc(day.debriefMinutes)}" placeholder="15"></div>
+        </div>
+        <div class="budget-op-fields" style="margin-top:8px;">
+          <div class="budget-op-field"><label>Pack down (mins)</label><input type="number" inputmode="numeric" min="0" data-schedfield="packMinutes" data-idx="${i}" value="${esc(packShown)}" placeholder="${autoPack}"></div>
+          <div class="budget-op-field" style="display:flex; align-items:flex-end;"><span class="timeline-hint" style="margin:0;">Starts at ¾ of the set up time — change it if this day differs.</span></div>
+        </div>
+        ${t ? `<div class="timeline-hint" style="margin-top:6px;">Shooting runs ${esc(minutesToClock(t.shootStart))}${t.shootEnd !== null ? ' – ' + esc(minutesToClock(t.shootEnd)) : ''}.</div>` : ''}
         <div class="budget-op-fields" style="margin-top:8px;">
           <div class="budget-op-field"><label>Drive time from studio (mins)</label><input type="number" inputmode="numeric" data-schedfield="driveMinutes" data-idx="${i}" value="${esc(day.driveMinutes||'')}" placeholder="0"></div>
           <div class="budget-op-field" style="display:flex; align-items:flex-end;">
@@ -6651,12 +7350,64 @@ function openScheduleModal(project, step, sideRight){
         ` : ''}`;
   }
 
-  // the fuller, original layout for short films / music videos: morning schedule as its own
-  // section, and "Scenes for this day" showing the bar chart, computed range, ≈time-per-shot,
-  // and drive-to-X inline — distinct from the simplified wedding layout below
+  // one scene: tap it to change how long it takes (the other scenes then share what's left)
+  function sceneRowHtml(day, i, g, groups, showPerShot){
+    const key = sceneKey(i, g.scene);
+    const open = editingScene === key;
+    const suggested = open ? suggestedMinutes(day, groups, g.scene) : null;
+    return `
+      <div class="sched-item-wrap">
+        <div class="sched-item sched-clickable${open ? ' sched-open' : ''}" data-editscene="${esc(key)}" title="Tap to change how long this scene takes">
+          <div class="sched-item-scene">${esc(g.scene)}${g.shooter ? ` <span class="sched-shooter-badge">Cam ${esc(g.shooter)}</span>` : ''}</div>
+          <div class="sched-item-meta">${g.count} shot${g.count===1?'':'s'}${g.range ? ' · ' + esc(g.range) : ''}${g.custom ? ' · edited' : ''}</div>
+        </div>
+        ${showPerShot && g.perShotMin !== null && !open ? `<div class="sched-info-box">≈ ${g.perShotMin} min per shot (${g.minutes} min split across ${g.count} shot${g.count===1?'':'s'})</div>` : ''}
+        ${open ? `
+        <div class="sched-edit-box">
+          <label class="loc-label" style="margin-top:0;">Time for this scene (mins)</label>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="number" inputmode="numeric" min="1" data-scenemin="${esc(key)}" value="${g.custom ? esc(String(g.minutes)) : ''}" placeholder="${suggested !== null ? suggested : ''}" style="flex:1;">
+            ${g.custom ? `<button type="button" class="btn small" data-scenereset="${esc(key)}">Use suggested</button>` : ''}
+          </div>
+          <div class="timeline-hint" style="margin:4px 0 0;">${suggested !== null ? `Suggested: ${suggested} min. ` : 'Set arrive and leave times to see a suggestion. '}The other scenes adjust to fit.</div>
+        </div>` : ''}
+      </div>`;
+  }
+
+  // scenes in order, with lunch, and a set up change (or an "add" button) between each pair of scenes
+  function scheduleListHtml(day, i, alloc, groups, showPerShot){
+    return alloc.items.map(g => {
+      if(g.isLunch) return `
+        <div class="sched-item-wrap">
+          <div class="sched-item sched-lunch"><div class="sched-item-scene">Lunch break</div><div class="sched-item-meta">${esc(g.range)}</div></div>
+        </div>`;
+      const key = sceneKey(i, g.scene);
+      if(g.isChange) return `
+        <div class="sched-item-wrap">
+          <div class="sched-item sched-drive"><div class="sched-item-scene">Set up change</div><div class="sched-item-meta">${g.range ? esc(g.range) : ''}</div></div>
+          <div style="display:flex; gap:8px; align-items:flex-end; margin:6px 0;">
+            <div style="flex:1;"><label class="loc-label" style="margin-top:0;">How long (mins)</label><input type="number" inputmode="numeric" min="0" data-changemin="${esc(key)}" value="${esc(String((day.setupChanges || {})[g.scene] ?? ''))}" placeholder="15"></div>
+            <button type="button" class="btn small danger" data-removechange="${esc(key)}">Remove</button>
+          </div>
+        </div>`;
+      const hasChange = (day.setupChanges || {})[g.scene] !== undefined;
+      return sceneRowHtml(day, i, g, groups, showPerShot)
+        + (!g.isLast && !hasChange ? `<button type="button" class="btn small ghost" data-addchange="${esc(key)}" style="width:100%; margin:6px 0;">+ Add setup change</button>` : '');
+    }).join('');
+  }
+
+  function scheduleHintsHtml(day, alloc){
+    if(!day.start || !day.end) return `<div class="timeline-hint" style="margin-top:8px;">Set arrive and leave times to allocate time to each scene.</div>`;
+    if(alloc.tooShort) return `<div class="timeline-hint" style="margin-top:8px; color:var(--out);">Pack down starts before shooting does — leave later, or shorten set up, debrief or pack down.</div>`;
+    if(alloc.overMin > 0) return `<div class="timeline-hint" style="margin-top:8px; color:var(--out);">Scenes run ${alloc.overMin} min past the start of pack down — shorten a scene or leave later.</div>`;
+    return '';
+  }
+
+  // the fuller layout for short films / music videos: morning schedule as its own section, then the
+  // scene list with a bar chart, computed range and ≈time-per-shot, then the end-of-day beats
   function dayHtmlStandard(day, i){
     const groups = sceneGroups(day.date);
-    const allocated = allocate(day, groups);
+    const alloc = allocateScenes(day, groups);
     const morning = morningSchedule(day);
     const onSet = operatorsForDay(day.date);
     return `
@@ -6666,48 +7417,21 @@ function openScheduleModal(project, step, sideRight){
         ${morning ? `
           <div class="sched-morning">
             <div class="loc-label" style="margin-top:10px;">Morning schedule — from ${esc(STUDIO_ADDRESS)}</div>
-            <div class="sched-item"><div class="sched-item-scene">Leave studio</div><div class="sched-item-meta">${esc(morning.leaveStudio)}</div></div>
-            <div class="sched-item"><div class="sched-item-scene">Arrive location</div><div class="sched-item-meta">${esc(morning.arriveLocation)}</div></div>
-            <div class="sched-item"><div class="sched-item-scene">Equipment set up</div><div class="sched-item-meta">${esc(morning.setupRange)}</div></div>
-            <div class="sched-item"><div class="sched-item-scene">Debrief</div><div class="sched-item-meta">${esc(morning.debriefRange)}</div></div>
-            <div class="sched-item"><div class="sched-item-scene">Start</div><div class="sched-item-meta">${esc(morning.startClock)}</div></div>
+            ${morningItemsHtml(morning)}
           </div>
-        ` : `<div class="timeline-hint" style="margin-top:8px;">Set a start time to work out the morning schedule from the studio.</div>`}
+        ` : `<div class="timeline-hint" style="margin-top:8px;">Set an arrival time to work out the morning schedule from the studio.</div>`}
         ${groups.length ? `
           <div class="loc-label" style="margin-top:12px;">Scenes for this day</div>
-          <div class="sched-bar">${allocated.map(g => `<span class="sched-seg${g.isLunch?' sched-seg-lunch':''}${g.isDrive?' sched-seg-drive':''}" style="flex-grow:${g.isLunch ? 3 : g.isDrive ? Math.max(1, Math.round(g.driveMin/5)) : g.count};" title="${g.isLunch ? 'Lunch' : g.isDrive ? 'Drive to ' + g.scene : esc(g.scene)}"></span>`).join('')}</div>
-          <div class="sched-list">
-            ${allocated.map(g => {
-              if(g.isLunch) return `
-                <div class="sched-item-wrap">
-                  <div class="sched-item sched-lunch"><div class="sched-item-scene">Lunch break</div><div class="sched-item-meta">${esc(g.range)}</div></div>
-                </div>`;
-              if(g.isDrive) return `
-                <div class="sched-item-wrap">
-                  <div class="sched-item sched-drive"><div class="sched-item-scene">Drive to ${esc(g.scene)}</div><div class="sched-item-meta">${g.driveMin} min · ${esc(g.range)}</div></div>
-                </div>`;
-              return `
-              <div class="sched-item-wrap">
-                <div class="sched-item">
-                  <div class="sched-item-scene">${esc(g.scene)}${g.shooter ? ` <span class="sched-shooter-badge">Cam ${esc(g.shooter)}</span>` : ''}</div>
-                  <div class="sched-item-meta">${g.count} shot${g.count===1?'':'s'}${g.range ? ' · ' + esc(g.range) : ''}</div>
-                </div>
-                ${g.perShotMin !== null ? `<div class="sched-info-box">≈ ${g.perShotMin} min per shot (${g.range} split across ${g.count} shot${g.count===1?'':'s'})</div>` : ''}
-                <div class="budget-op-fields" style="margin-top:6px;">
-                  <div class="budget-op-field"><label>Custom time (optional)</label>${timeFieldHtml('schedscene-' + i + '__' + encodeURIComponent(g.scene), (day.sceneTimes && day.sceneTimes[g.scene]) || '')}</div>
-                  <div class="budget-op-field"><label>Drive time before (mins)</label><input type="number" inputmode="numeric" min="0" data-drivetime="${i}__${esc(g.scene)}" value="${esc((day.driveTimes && day.driveTimes[g.scene]) || '')}" placeholder="0"></div>
-                </div>
-              </div>`;
-            }).join('')}
-          </div>
-          ${(!day.start || !day.end) ? `<div class="timeline-hint" style="margin-top:8px;">Set a start and end time to allocate times per scene, and see time per shot.</div>` : ''}
+          <div class="sched-bar">${alloc.items.map(g => `<span class="sched-seg${g.isLunch?' sched-seg-lunch':''}${g.isChange?' sched-seg-drive':''}" style="flex-grow:${Math.max(1, g.minutes !== null && g.minutes !== undefined ? g.minutes : (g.count || 1))};" title="${g.isLunch ? 'Lunch' : g.isChange ? 'Set up change' : esc(g.scene)}"></span>`).join('')}</div>
+          <div class="sched-list">${scheduleListHtml(day, i, alloc, groups, true)}</div>
+          ${scheduleHintsHtml(day, alloc)}
           ${['A','B'].map(letter => {
-            const tl = shooterTimeline(allocated, letter);
+            const tl = shooterTimeline(alloc.items, letter);
             return tl.length ? `
               <div class="loc-label" style="margin-top:14px;">Shooter ${letter} timeline</div>
               <div class="sched-list">
-                ${tl.map(g => g.isDrive
-                  ? `<div class="sched-item sched-drive"><div class="sched-item-scene">Driving</div><div class="sched-item-meta">${g.driveMin} min</div></div>`
+                ${tl.map(g => g.isChange
+                  ? `<div class="sched-item sched-drive"><div class="sched-item-scene">Set up change</div><div class="sched-item-meta">${g.minutes} min</div></div>`
                   : `<div class="sched-item"><div class="sched-item-scene">${esc(g.scene)}</div><div class="sched-item-meta">${g.range ? esc(g.range) : ''}</div></div>`
                 ).join('')}
               </div>` : '';
@@ -6716,14 +7440,19 @@ function openScheduleModal(project, step, sideRight){
           <p class="empty small">${(!shotStep || !shotStep.shotListRows || !shotStep.shotListRows.length) ? 'Your Shot list is empty — add shots there first.' : 'No shots matched to this day yet.'}</p>
           ${(shotStep && shotStep.shotListRows && shotStep.shotListRows.length) ? `<button type="button" class="btn small" data-assignallday="${i}" style="width:100%; margin-top:6px;">Assign all shots to this day</button>` : ''}
         `}
+        ${morning && morning.end ? `
+          <div class="sched-morning">
+            <div class="loc-label" style="margin-top:12px;">End of day</div>
+            ${endItemsHtml(morning)}
+          </div>` : ''}
       </div>`;
   }
 
-  // the simplified wedding layout: no bar chart, no per-shot time-split box, driving time only
-  // shown inline within each shooter's own timeline (which also carries the morning schedule)
+  // the simplified wedding layout: no bar chart or per-shot time-split box; each shooter's own
+  // timeline carries the morning schedule and the end-of-day beats
   function dayHtmlWedding(day, i){
     const groups = sceneGroups(day.date);
-    const allocated = allocate(day, groups);
+    const alloc = allocateScenes(day, groups);
     const morning = morningSchedule(day);
     const onSet = operatorsForDay(day.date);
     return `
@@ -6732,37 +7461,20 @@ function openScheduleModal(project, step, sideRight){
         ${dayCastCrewHtml(i, onSet, day.others)}
         ${groups.length ? `
           <div class="loc-label" style="margin-top:12px;">Scenes for this day</div>
-          <div class="sched-list">
-            ${groups.map(g => `
-              <div class="sched-item-wrap">
-                <div class="sched-item">
-                  <div class="sched-item-scene">${esc(g.scene)}${g.shooter ? ` <span class="sched-shooter-badge">Cam ${esc(g.shooter)}</span>` : ''}</div>
-                </div>
-                <div class="budget-op-fields" style="margin-top:6px;">
-                  <div class="budget-op-field"><label>Custom time (optional)</label>${timeFieldHtml('schedscene-' + i + '__' + encodeURIComponent(g.scene), (day.sceneTimes && day.sceneTimes[g.scene]) || '')}</div>
-                  <div class="budget-op-field"><label>Driving time from previous location (mins)</label><input type="number" inputmode="numeric" min="0" data-drivetime="${i}__${esc(g.scene)}" value="${esc((day.driveTimes && day.driveTimes[g.scene]) || '')}" placeholder="0"></div>
-                </div>
-              </div>`).join('')}
-          </div>
-          ${(!day.start || !day.end) ? `<div class="timeline-hint" style="margin-top:8px;">Set a start and end time to work out each shooter's timeline.</div>` : ''}
+          <div class="sched-list">${scheduleListHtml(day, i, alloc, groups, false)}</div>
+          ${scheduleHintsHtml(day, alloc)}
           ${['A','B'].map(letter => {
-            const tl = shooterTimeline(allocated, letter);
+            const tl = shooterTimeline(alloc.items, letter);
             if(!tl.length) return '';
             return `
               <div class="loc-label" style="margin-top:14px;">Shooter ${letter} timeline</div>
               <div class="sched-list">
-                ${morning ? `
-                  <div class="sched-item"><div class="sched-item-scene">Leave studio</div><div class="sched-item-meta">${esc(morning.leaveStudio)}</div></div>
-                  ${morning.driveMin > 0 ? `<div class="sched-item sched-drive"><div class="sched-item-scene">Driving</div><div class="sched-item-meta">${morning.driveMin} min</div></div>` : ''}
-                  <div class="sched-item"><div class="sched-item-scene">Arrive location</div><div class="sched-item-meta">${esc(morning.arriveLocation)}</div></div>
-                  <div class="sched-item"><div class="sched-item-scene">Equipment set up</div><div class="sched-item-meta">${esc(morning.setupRange)}</div></div>
-                  <div class="sched-item"><div class="sched-item-scene">Debrief</div><div class="sched-item-meta">${esc(morning.debriefRange)}</div></div>
-                  <div class="sched-item"><div class="sched-item-scene">Start</div><div class="sched-item-meta">${esc(morning.startClock)}</div></div>
-                ` : `<div class="timeline-hint">Set a start time to work out the morning schedule from the studio.</div>`}
-                ${tl.map(g => g.isDrive
-                  ? `<div class="sched-item sched-drive"><div class="sched-item-scene">Driving</div><div class="sched-item-meta">${g.driveMin} min</div></div>`
+                ${morning ? morningItemsHtml(morning) : `<div class="timeline-hint">Set an arrival time to work out the morning schedule from the studio.</div>`}
+                ${tl.map(g => g.isChange
+                  ? `<div class="sched-item sched-drive"><div class="sched-item-scene">Set up change</div><div class="sched-item-meta">${g.minutes} min</div></div>`
                   : `<div class="sched-item"><div class="sched-item-scene">${esc(g.scene)}</div><div class="sched-item-meta">${g.range ? esc(g.range) : ''}</div></div>`
                 ).join('')}
+                ${endItemsHtml(morning)}
               </div>`;
           }).join('')}
         ` : `
@@ -6867,15 +7579,49 @@ function openScheduleModal(project, step, sideRight){
         persistSchedule();
       });
     });
-    bg.querySelectorAll('[data-timefield^="schedscene-"]').forEach(el => {
+    // tap a scene to open its "how long" box
+    bg.querySelectorAll('[data-editscene]').forEach(el => {
+      el.addEventListener('click', () => {
+        editingScene = editingScene === el.dataset.editscene ? null : el.dataset.editscene;
+        paint();
+      });
+    });
+    bg.querySelectorAll('[data-scenemin]').forEach(el => {
+      const { dayIdx, scene } = parseSceneKey(el.dataset.scenemin);
       el.addEventListener('change', () => {
-        const hidden = document.getElementById(el.dataset.timefield);
-        const rest = el.dataset.timefield.slice('schedscene-'.length);
-        const sep = rest.indexOf('__');
-        const dayIdx = parseInt(rest.slice(0, sep), 10);
-        const scene = decodeURIComponent(rest.slice(sep + 2));
-        if(!days[dayIdx].sceneTimes) days[dayIdx].sceneTimes = {};
-        days[dayIdx].sceneTimes[scene] = hidden.value;
+        const n = parseFloat(el.value);
+        if(n > 0) days[dayIdx].sceneMinutes[scene] = String(n);
+        else delete days[dayIdx].sceneMinutes[scene];
+        paint();
+        persistSchedule();
+      });
+    });
+    bg.querySelectorAll('[data-scenereset]').forEach(el => {
+      el.addEventListener('click', () => {
+        const { dayIdx, scene } = parseSceneKey(el.dataset.scenereset);
+        delete days[dayIdx].sceneMinutes[scene];
+        paint();
+        persistSchedule();
+      });
+    });
+    // set up changes sit between two scenes, stored against the scene that comes before them
+    bg.querySelectorAll('[data-addchange]').forEach(el => {
+      el.addEventListener('click', () => {
+        const { dayIdx, scene } = parseSceneKey(el.dataset.addchange);
+        days[dayIdx].setupChanges[scene] = '15';
+        paint();
+        persistSchedule();
+      });
+    });
+    bg.querySelectorAll('[data-changemin]').forEach(el => {
+      const { dayIdx, scene } = parseSceneKey(el.dataset.changemin);
+      el.addEventListener('input', () => { days[dayIdx].setupChanges[scene] = el.value; });
+      el.addEventListener('change', () => { paint(); persistSchedule(); });
+    });
+    bg.querySelectorAll('[data-removechange]').forEach(el => {
+      el.addEventListener('click', () => {
+        const { dayIdx, scene } = parseSceneKey(el.dataset.removechange);
+        delete days[dayIdx].setupChanges[scene];
         paint();
         persistSchedule();
       });
@@ -6891,16 +7637,6 @@ function openScheduleModal(project, step, sideRight){
         showToast(ok ? 'All shots assigned to this day' : 'Save failed', !ok);
         if(ok) paint();
       });
-    });
-    bg.querySelectorAll('[data-drivetime]').forEach(el => {
-      el.addEventListener('input', () => {
-        const [dayIdx, scene] = el.dataset.drivetime.split('__');
-        if(!days[dayIdx].driveTimes) days[dayIdx].driveTimes = {};
-        days[dayIdx].driveTimes[scene] = el.value;
-        // no paint() here — rebuilding the whole panel on every keystroke destroys and recreates
-        // this input, kicking focus out and jumping the scroll position while typing
-      });
-      el.addEventListener('change', () => { paint(); persistSchedule(); });
     });
     bg.querySelector('#schedSave').addEventListener('click', () => {
       bg.remove();
@@ -7198,6 +7934,79 @@ function openBriefModal(project, step, sideRight){
   });
 }
 
+// what a step opens to by default: its title, key details and a notes box that saves as you type.
+// Checklist and dated steps also show their items here; the cog still opens the full edit panel.
+function openStepNotesPanel(project, step, sideRight){
+  closeSidePanels();
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg' + (sideRight ? ' side-right' : '');
+  const type = step.stepType || 'standard';
+  const range = (step.startDate && step.endDate && step.startDate !== step.endDate)
+    ? `${fmtDate(step.startDate)} – ${fmtDate(step.endDate)}`
+    : (stepDeadline(step) ? fmtDate(stepDeadline(step)) : 'No date');
+  const meta = [stageLabel(step.stage), step.who, range].filter(Boolean).map(esc).join(' · ');
+  let items = '';
+  if(type === 'checklist'){
+    const list = step.checklistItems || [];
+    items = `<div class="loc-label">Checklist</div>` + (list.length ? list.map(i => `
+      <div class="checklist-row">
+        <input type="checkbox" data-snctick="${i.id}" ${i.checked ? 'checked' : ''}>
+        <span style="flex:1;">${esc(i.text || '')}</span>
+      </div>`).join('') : `<div class="timeline-hint">No items yet — add them from Edit details.</div>`);
+  } else if(type === 'dated'){
+    const list = (step.datedItems || []).slice().sort((a,b) => (a.date||'').localeCompare(b.date||''));
+    items = `<div class="loc-label">Dates</div>` + (list.length ? list.map(i => `
+      <div class="sched-item" style="margin-bottom:6px;"><div class="sched-item-scene" style="white-space:normal;">${esc(i.description || 'Untitled')}</div><div class="sched-item-meta">${i.date ? esc(fmtDate(i.date)) : 'No date'}</div></div>`).join('') : `<div class="timeline-hint">No dates yet — add them from Edit details.</div>`);
+  }
+  bg.innerHTML = `
+    <div class="modal">
+      <h3>${esc(step.title || 'Untitled step')}</h3>
+      <div style="font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:10px;">${meta}</div>
+      ${step.description ? `<div class="timeline-hint" style="white-space:pre-wrap;">${esc(step.description)}</div>` : ''}
+      ${items}
+      <div class="field" style="margin-top:12px;"><label>Notes</label>
+        <textarea id="snNotes" rows="8" placeholder="Write anything about this step…">${esc(step.notes || '')}</textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="snEdit" style="flex:1;">Edit details</button>
+        <button class="btn primary" id="snClose" style="flex:1;">Close</button>
+      </div>
+    </div>`;
+  presentPanel(bg, step.id);
+  autoGrowAll(bg);
+  const ta = bg.querySelector('#snNotes');
+  let lastSaved = step.notes || '';
+  let timer = null;
+  async function flush(){
+    clearTimeout(timer); timer = null;
+    if(ta.value === lastSaved) return true;
+    lastSaved = ta.value;
+    step.notes = ta.value;
+    touchStep(step);
+    touchProject(project);
+    const ok = await saveProjects();
+    if(!ok) showToast('Save failed — try again', true);
+    return ok;
+  }
+  ta.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(flush, 800); });
+  ta.addEventListener('blur', flush);
+  bg.querySelectorAll('[data-snctick]').forEach(cb => {
+    cb.addEventListener('change', async () => {
+      const item = (step.checklistItems || []).find(i => i.id === cb.dataset.snctick);
+      if(!item) return;
+      item.checked = cb.checked;
+      touchStep(step);
+      touchProject(project);
+      const ok = await saveProjects();
+      if(!ok) showToast('Save failed — try again', true);
+    });
+  });
+  bg.querySelector('#snClose').addEventListener('click', async () => { await flush(); bg.remove(); render(); });
+  bg.querySelector('#snEdit').addEventListener('click', async () => { await flush(); bg.remove(); openStepModal(project, step, null, sideRight); });
+  bg.addEventListener('click', async ev => { if(ev.target === bg){ await flush(); bg.remove(); render(); } });
+  ta.focus();
+}
+
 function openStepModal(project, step, presetStage, sideRight){
   closeSidePanels();
   const isNew = !step;
@@ -7443,7 +8252,7 @@ const GEAR_PRESETS = {
   basic: ['Camera Crate', 'Battery Crate', 'Audio Crate', 'Hard Drive Case', 'Tripod Bag'],
   wedding: ['Camera Crate', 'Battery Crate', 'Hard Drive Case', 'Tripod Bag', 'Gimbal Box', 'Rode Wireless PRO Compact Wireless II'],
 };
-const CATEGORIES = ['Camera & Cage', 'Lenses', 'Storage', 'Power', 'Lighting', 'Tripod & Support', 'Gimbal & Stabiliser', 'Focus & Monitoring', 'Cables', 'Audio', 'Tools', 'Photography'];
+const CATEGORIES = ['Camera & Cage', 'Lenses', 'Storage', 'Power', 'Lighting', 'Tripod & Rigging', 'Gimbal & Stabiliser', 'Focus & Monitoring', 'Cables', 'Audio', 'Tools', 'Photography'];
 
 let ENTITIES = [];
 let gearExpandedCategories = new Set(); // which "not in a crate" category dropdowns are open, persisted across re-renders
@@ -7669,6 +8478,32 @@ function migrateEntities(){
       changed = true;
     }
   }
+  // gear housekeeping (idempotent): category rename, quantities, moved/added items
+  const now = new Date().toISOString();
+  ENTITIES.forEach(e => {
+    if(e.category === 'Tripod & Support'){ e.category = 'Tripod & Rigging'; changed = true; }
+  });
+  const setQtyCat = (name, qty, cat) => {
+    ENTITIES.filter(e => e.type === 'item' && e.name === name).forEach(e => {
+      if(e.qty !== qty || (cat && e.category !== cat)){
+        e.qty = qty; if(cat) e.category = cat; e.updatedAt = now; changed = true;
+      }
+    });
+  };
+  setQtyCat('Godox 35 Degree Cone', 3);
+  setQtyCat('Godox Light Stand Mount', 3);
+  setQtyCat('Godox DC Power Cable', 3, 'Lighting');
+  const addItem = (name, cat, parentId, qty) => {
+    if(ENTITIES.some(e => e.name === name)) return;
+    if(parentId && !ENTITIES.some(e => e.id === parentId)) parentId = null;
+    ENTITIES.push({
+      id: slugify(name), name, category: cat, type:'item', parentId: parentId || null,
+      tracked: !parentId, qty, location: HOME_BASE, updatedAt: now, history: [],
+    });
+    changed = true;
+  };
+  addItem('C-Stand', 'Tripod & Rigging', null, 3);
+  addItem('Samyang 35mm T1.5 [broken]', 'Lenses', 'lens-pouch', 1);
   return changed;
 }
 async function loadEntities(){
@@ -8513,7 +9348,7 @@ function seedData(){
     ['lens-pouch', 'Lens Crate', 'Lenses'],
     ['battery-pouch', 'Battery Crate', 'Power'],
     ['neewer-bag', 'Neewer Bag', 'Lighting'],
-    ['tripod-bag', 'Tripod Bag', 'Tripod & Support'],
+    ['tripod-bag', 'Tripod Bag', 'Tripod & Rigging'],
     ['gimbal-bag', 'Gimbal Box', 'Gimbal & Stabiliser'],
     ['vest-bag', 'Steadicam Vest Bag', 'Gimbal & Stabiliser'],
     ['audio-bag', 'Audio Crate', 'Audio'],
@@ -8539,6 +9374,7 @@ function seedData(){
     ['Canon 35mm f/2.0 USM','Lenses',null,1],
     ['Samyang 14mm T3.1','Lenses','lens-pouch',1],
     ['Samyang 85mm T1.5','Lenses','lens-pouch',1],
+    ['Samyang 35mm T1.5 [broken]','Lenses','lens-pouch',1],
     ['Samsung T7 1TB SSD','Storage','harddrive-case',1],
     ['Samsung T7 Shield 1TB SSD','Storage','harddrive-case',1],
     ['SanDisk Extreme Portable 1TB SSD','Storage','harddrive-case',1],
@@ -8548,18 +9384,19 @@ function seedData(){
     ['Wimaxxit V-Mount Battery','Power','battery-pouch',3],
     ['Wimaxxit V-Mount Battery','Power','camera-bag',1],
     ['LP-E6N Battery','Power',null,6],
-    ['Godox DC Power Cable','Power',null,1],
+    ['Godox DC Power Cable','Lighting',null,3],
     ['Zhiyun 18650 Li-Ion Battery (2600mAh)','Power',null,6],
     ['Zhiyun Li-Ion Battery Charger','Power',null,1],
     ['Godox ML100Bi LED Light','Lighting',null,3],
-    ['Godox Light Stand Mount','Lighting',null,1],
-    ['Godox 35 Degree Cone','Lighting',null,1],
+    ['Godox Light Stand Mount','Lighting',null,3],
+    ['Godox 35 Degree Cone','Lighting',null,3],
     ['Godox Softbox ML SF50','Lighting',null,2],
     ['Neewer Light Stand','Lighting',null,1],
     ['Neewer 40W Bi-Colour LED Panel','Lighting','neewer-bag',3],
     ['Neewer 40W DC Power Cable','Lighting','neewer-bag',3],
-    ['Neewer 79" Heavy Duty Tripod Fluid Head w/ QR Plate','Tripod & Support','tripod-bag',1],
-    ['PYXEL Quick Release Plate','Tripod & Support',null,2],
+    ['Neewer 79" Heavy Duty Tripod Fluid Head w/ QR Plate','Tripod & Rigging','tripod-bag',1],
+    ['PYXEL Quick Release Plate','Tripod & Rigging',null,2],
+    ['C-Stand','Tripod & Rigging',null,3],
     ['Zhiyun Crane 3S Pro Gimbal','Gimbal & Stabiliser','gimbal-bag',1],
     ['Zhiyun Sling Arm','Gimbal & Stabiliser','gimbal-bag',1],
     ['Zhiyun Crane Base Plate','Gimbal & Stabiliser','gimbal-bag',1],
@@ -8698,7 +9535,7 @@ Sarah steps outside. The neighbourhood is quiet, waking up. She takes a deep bre
 
   const schedStep = find('Shooting schedule of day');
   if(schedStep) schedStep.scheduleDays = [shootDate1, shootDate2].map(d => ({
-    date: d, start:'08:00', end:'18:00', driveMinutes:'15', uber:false,
+    date: d, start:'07:00', end:'18:30', driveMinutes:'15', uber:false, setupMinutes:'45', debriefMinutes:'15', packMinutes:'', v2:true,
     lunch:true, lunchStart:'13:00', lunchMinutes:'60', others:[{ id: uid(), text:'Sarah (actor)' }],
   }));
 
