@@ -2493,6 +2493,159 @@ function renderStoryboardViewer(){
     renderBoardProjectPicker(app);
   }
 }
+// ---------- storyboard PDF export for clients: one landscape A4 page per shot ----------
+function openBoardPdfModal(project){
+  const shotStep = (project.steps || []).find(isShotListStep);
+  const shots = (shotStep && shotStep.shotListRows) ? shotStep.shotListRows : [];
+  const scenes = [...new Set(shots.map(s => s.scene).filter(Boolean))];
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg';
+  bg.innerHTML = `
+    <div class="modal">
+      <h3>Export storyboards — ${esc(project.name)}</h3>
+      ${shots.length ? `
+        <div class="card-sub" style="margin-bottom:10px;">${shots.length} shot${shots.length===1?'':'s'} · one landscape page per shot</div>
+        <label class="budget-daytoggle" style="display:flex; gap:8px; margin:8px 0;"><input type="checkbox" id="pdfDetails" checked> Show shot details (scene, camera, lens, shot type, movement, intention)</label>
+        <label class="budget-daytoggle" style="display:flex; gap:8px; margin:8px 0;"><input type="checkbox" id="pdfLighting"> Add a page with the lighting plan after each shot</label>
+        <label class="budget-daytoggle" style="display:flex; gap:8px; margin:8px 0;"><input type="checkbox" id="pdfSkipEmpty"> Leave out shots with no storyboard image</label>
+        ${scenes.length > 1 ? `<div class="field" style="margin-top:10px;"><label>Scene</label><select id="pdfScene"><option value="">All scenes</option>${scenes.map(sc => `<option value="${esc(sc)}">${esc(sc)}</option>`).join('')}</select></div>` : ''}
+        <div id="pdfStatus" class="timeline-hint" style="margin-top:8px;"></div>`
+      : `<p class="empty small">This project's Shot list is empty — add shots there first.</p>`}
+      <div class="modal-actions">
+        <button class="btn ghost" id="pdfCancel" style="flex:1;">Close</button>
+        ${shots.length ? `<button class="btn primary" id="pdfGo" style="flex:1;">Export PDF</button>` : ''}
+      </div>
+    </div>`;
+  document.body.appendChild(bg);
+  bg.addEventListener('click', ev => { if(ev.target === bg) bg.remove(); });
+  bg.querySelector('#pdfCancel').addEventListener('click', () => bg.remove());
+  const go = bg.querySelector('#pdfGo');
+  if(!go) return;
+  go.addEventListener('click', async () => {
+    const status = bg.querySelector('#pdfStatus');
+    go.disabled = true;
+    try{
+      const ok = await exportBoardPdf(project, {
+        details: bg.querySelector('#pdfDetails').checked,
+        lighting: bg.querySelector('#pdfLighting').checked,
+        skipEmpty: bg.querySelector('#pdfSkipEmpty').checked,
+        scene: bg.querySelector('#pdfScene') ? bg.querySelector('#pdfScene').value : '',
+      }, msg => { status.textContent = msg; });
+      if(ok) bg.remove();
+    }catch(e){
+      console.error('storyboard pdf failed', e);
+      status.textContent = 'Something went wrong making the PDF — try again.';
+      status.style.color = 'var(--out)';
+    }
+    go.disabled = false;
+  });
+}
+// decodes any stored image (jpeg/png/webp…) and re-encodes it as a flat JPEG the PDF writer always accepts
+function pdfPrepImage(dataUrl){
+  return new Promise(resolve => {
+    const im = new Image();
+    im.onload = () => {
+      try{
+        const w = im.naturalWidth || 1, h = im.naturalHeight || 1;
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(im, 0, 0);
+        resolve({ w, h, data: cv.toDataURL('image/jpeg', 0.92) });
+      }catch(e){ resolve(null); }
+    };
+    im.onerror = () => resolve(null);
+    im.src = dataUrl;
+  });
+}
+async function exportBoardPdf(project, opts, progress){
+  if(typeof window.jspdf === 'undefined'){ showToast("Couldn't load the PDF writer — check your connection and try again", true); return false; }
+  const { jsPDF } = window.jspdf;
+  const shotStep = (project.steps || []).find(isShotListStep);
+  let shots = (shotStep && shotStep.shotListRows) ? shotStep.shotListRows.slice() : [];
+  if(opts.scene) shots = shots.filter(s => (s.scene || '') === opts.scene);
+
+  const doc = new jsPDF({ unit:'pt', format:'a4', orientation:'landscape' });
+  const PW = doc.internal.pageSize.getWidth(), PH = doc.internal.pageSize.getHeight();
+  const M = 36;
+  const dateStr = new Date().toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' });
+  let pages = 0;
+
+  const fitImage = async (dataUrl, x, y, w, h) => {
+    const info = await pdfPrepImage(dataUrl);
+    if(!info) return false;
+    const scale = Math.min(w / info.w, h / info.h);
+    const iw = info.w * scale, ih = info.h * scale;
+    doc.addImage(info.data, 'JPEG', x + (w - iw) / 2, y + (h - ih) / 2, iw, ih);
+    return true;
+  };
+  const newPage = () => { if(pages > 0) doc.addPage(); pages++; };
+  const header = (shot, idx, subtitle) => {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(17);
+    doc.text(project.name, M, M + 6);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(110);
+    doc.text(`${subtitle}${subtitle ? ' · ' : ''}Shot ${idx + 1} of ${shots.length}`, PW - M, M + 6, { align:'right' });
+    doc.setDrawColor(200); doc.line(M, M + 14, PW - M, M + 14);
+  };
+  const detailBand = (shot, y) => {
+    const cells = [['Scene', shot.scene], ['Camera', shot.camera], ['Shot', shot.shot], ['Shot type', shot.shotType], ['Lens', shot.lens], ['Movement', shot.movement], ['Intention', shot.intention]];
+    const colW = (PW - 2 * M) / cells.length;
+    cells.forEach(([label, val], i) => {
+      const x = M + i * colW;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(120);
+      doc.text(label.toUpperCase(), x, y);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(17);
+      const txt = doc.splitTextToSize(String(val || '—'), colW - 8).slice(0, 2);
+      doc.text(txt, x, y + 13);
+    });
+  };
+
+  for(let i = 0; i < shots.length; i++){
+    const shot = shots[i];
+    if(progress) progress(`Preparing shot ${i + 1} of ${shots.length}…`);
+    const imgs = await loadImageSet(shotImageKey(project.id, shot.id));
+    const img = imgs[0];
+    if(!img && opts.skipEmpty) continue;
+    newPage();
+    header(shot, i, '');
+    const top = M + 24;
+    const bandH = opts.details ? 46 : 0;
+    if(opts.details) detailBand(shot, top + 8);
+    const areaY = top + bandH, areaH = PH - M - areaY;
+    let drawn = false;
+    if(img) drawn = await fitImage(img.dataUrl, M, areaY, PW - 2 * M, areaH);
+    if(!drawn){
+      doc.setDrawColor(210); doc.rect(M, areaY, PW - 2 * M, areaH);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(150);
+      doc.text('No storyboard image yet', PW / 2, areaY + areaH / 2, { align:'center' });
+    }
+    if(opts.lighting){
+      const lights = await loadImageSet(shotLightKey(project.id, shot.id));
+      if(lights.length){
+        // up to 2 lighting images per page, side by side
+        for(let k = 0; k < lights.length; k += 2){
+          newPage();
+          header(shot, i, 'Lighting plan');
+          if(opts.details) detailBand(shot, top + 8);
+          const pair = lights.slice(k, k + 2);
+          const gap = 16, cw = (PW - 2 * M - gap * (pair.length - 1)) / pair.length;
+          for(let j = 0; j < pair.length; j++) await fitImage(pair[j].dataUrl, M + j * (cw + gap), areaY, cw, areaH);
+        }
+      }
+    }
+  }
+  if(pages === 0){ showToast('No shots to export — nothing has a storyboard image yet', true); return false; }
+  const total = doc.getNumberOfPages();
+  for(let p = 1; p <= total; p++){
+    doc.setPage(p);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(150);
+    doc.text(`${dateStr}  ·  page ${p} of ${total}`, M, PH - 14);
+  }
+  doc.save(`${(project.name || 'project').replace(/[^a-z0-9]+/gi, '-')}-storyboards.pdf`);
+  showToast('Storyboard PDF downloaded');
+  return true;
+}
 function renderBoardProjectPicker(app){
   const allProjects = PROJECTS.filter(p => p.status !== 'finished' && !p.deletedAt).sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
   const active = allProjects.filter(p => !p.storyboardsDone);
@@ -2501,6 +2654,7 @@ function renderBoardProjectPicker(app){
     <div class="card" data-openboard="${p.id}" style="cursor:pointer;">
       <div class="dot ${projectDotClass(p)}"></div>
       <div class="card-body"><div class="name">${esc(p.name)}</div></div>
+      <button type="button" class="mo-btn" data-boardpdf="${p.id}" title="Export storyboards as PDF" aria-label="Export storyboards as PDF" style="color:var(--text-dim); font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:0.04em;">PDF</button>
       <button type="button" class="mo-btn" data-boardanimatic="${p.id}" title="${p.animatic ? 'Play or replace animatic' : 'Upload animatic'}" aria-label="Animatic" style="${p.animatic ? 'color:var(--text);' : 'color:var(--text-dim);'}">${BOARD_ICONS.animatic}</button>
       <button type="button" class="dot-btn" data-boarddoneproj="${p.id}" title="Mark storyboards done" aria-label="Mark storyboards done"><span class="dot ${p.storyboardsDone?'wrap':'blank'}" style="margin-top:0;"></span></button>
     </div>`;
@@ -2517,6 +2671,13 @@ function renderBoardProjectPicker(app){
   `;
   app.querySelectorAll('[data-openboard]').forEach(el => {
     el.addEventListener('click', () => goBoardProject(el.dataset.openboard, 0));
+  });
+  app.querySelectorAll('[data-boardpdf]').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const p = byId(btn.dataset.boardpdf);
+      if(p) openBoardPdfModal(p);
+    });
   });
   app.querySelectorAll('[data-boardanimatic]').forEach(btn => {
     btn.addEventListener('click', (ev) => {
@@ -3828,6 +3989,7 @@ function matchStoryboardsByShotName(project, shots){
       const norm = s => (s || '').trim().toLowerCase();
       let matched = 0;
       let createdAny = false;
+      let createdSaved = false;
 
       for(const file of imageFiles){
         const baseName = file.name.replace(/\.[^.]+$/, '');
@@ -3836,12 +3998,18 @@ function matchStoryboardsByShotName(project, shots){
 
         if(sceneShotMatch && shotStep){
           const [, sceneNum, shotNum] = sceneShotMatch;
-          if(!shotStep.shotListRows) shotStep.shotListRows = [];
-          shot = shotStep.shotListRows.find(s => norm(s.scene) === sceneNum && norm(s.shot) === shotNum);
+          if(!shotStep.shotListRows) shotStep.shotListRows = shots; // caller had no saved list yet — adopt theirs
+          // look in the caller's list first — the Shot list panel works on a copy that can hold shots
+          // not saved yet (just typed or imported), and those must be matched, not duplicated
+          shot = shots.find(s => norm(s.scene) === sceneNum && norm(s.shot) === shotNum)
+              || shotStep.shotListRows.find(s => norm(s.scene) === sceneNum && norm(s.shot) === shotNum);
+          if(shot && !shots.includes(shot)) shots.push(shot);
           if(!shot){
             shot = { id: uid(), day:'', location:'', scene: sceneNum, shot: shotNum, order:'', camera:'', lens:'', shotType:'', movement:'', script:'', intention:'', multicam:'', vfx:'', done:false };
-            shotStep.shotListRows.push(shot);
-            if(shots !== shotStep.shotListRows) shots.push(shot); // keep a separate working-copy caller in sync too, without double-pushing when they're the same array
+            shots.push(shot);
+            // only write to the saved list directly when the caller is working on it; the Shot list
+            // panel's copy is saved by its own Save button
+            if(shots === shotStep.shotListRows) createdSaved = true;
             createdAny = true;
           }
           const meta = csvByFilename[file.name];
@@ -3869,7 +4037,7 @@ function matchStoryboardsByShotName(project, shots){
         }catch(e){ console.error('storyboard batch match failed', e); }
       }
 
-      if(createdAny){
+      if(createdSaved){
         shotStep.updatedAt = new Date().toISOString();
         touchProject(project);
         await saveProjects();
@@ -4777,7 +4945,7 @@ async function renderMoodboardLegacy(app, project, step){
   paint();
 }
 
-function openConfirmModal(message, onConfirm){
+function openConfirmModal(message, onConfirm, confirmLabel){
   const bg = document.createElement('div');
   bg.className = 'modal-bg';
   bg.innerHTML = `
@@ -4786,7 +4954,7 @@ function openConfirmModal(message, onConfirm){
       <div style="font-size:14px; color:var(--text-dim); margin-bottom:6px;">${esc(message)}</div>
       <div class="modal-actions">
         <button class="btn ghost" id="cancelConfirm" style="flex:1;">Cancel</button>
-        <button class="btn danger" id="okConfirm" style="flex:1;">Delete</button>
+        <button class="btn danger" id="okConfirm" style="flex:1;">${esc(confirmLabel || 'Delete')}</button>
       </div>
     </div>`;
   document.body.appendChild(bg);
@@ -6297,8 +6465,8 @@ function activeShotlistCols(projectType){
 }
 // per-column widths so narrow fields like Camera don't take as much room as Scene or Shot
 const SHOTLIST_COL_WIDTHS = {
-  day: 150, location: 150, order: 70, scene: 160, camera: 60, lens: 80,
-  shot: 170, shotType: 90, movement: 100, script: 150, intention: 150, multicam: 70, vfx: 90,
+  day: 150, location: 150, order: 70, scene: 70, camera: 60, lens: 80,
+  shot: 70, shotType: 90, movement: 100, script: 150, intention: 150, multicam: 70, vfx: 90,
 };
 // alternate header spellings a spreadsheet might use for each column, matched case-insensitively
 const SHOTLIST_HEADER_ALIASES = {
@@ -6712,7 +6880,7 @@ function openShotListModal(project, step, sideRight){
         showToast(`Imported ${imported.length} shot${imported.length===1?'':'s'}` + (locCount ? ` — ${locCount} location${locCount===1?'':'s'} added to Location Scout` : ''));
       };
       if(rows.length){
-        openConfirmModal(`Import ${imported.length} row${imported.length===1?'':'s'} from this file? This replaces the ${rows.length} row${rows.length===1?'':'s'} already in the Shot list.`, proceed);
+        openConfirmModal(`Import ${imported.length} row${imported.length===1?'':'s'} from this file? This replaces the ${rows.length} row${rows.length===1?'':'s'} already in the Shot list.`, proceed, 'Replace');
       } else {
         proceed();
       }
@@ -7180,13 +7348,18 @@ function scheduleSceneGroups(project, date){
   const map = {};
   scheduleRelevantRows(project, date).forEach(r => {
     const key = r.scene || '(No scene set)';
-    if(!map[key]) map[key] = { count:0, cameras: new Set() };
+    if(!map[key]) map[key] = { count:0, cameras: new Set(), firstOrder: Infinity, seq: Object.keys(map).length };
     map[key].count++;
+    // scenes run in shooting order: a scene sits where its earliest-ordered shot sits
+    const ord = parseFloat(r.order);
+    if(!isNaN(ord) && ord < map[key].firstOrder) map[key].firstOrder = ord;
     // shooter assignment comes straight from whatever camera(s) are on that scene's shots —
     // "A&B" (or shots split across both cameras) means both shooters are covering it
     (r.camera || '').split(/[,&/]|\band\b/i).map(c => c.trim().toUpperCase()).filter(Boolean).forEach(c => map[key].cameras.add(c));
   });
-  return Object.entries(map).map(([scene,data]) => ({
+  return Object.entries(map)
+    .sort((a, b) => (a[1].firstOrder - b[1].firstOrder) || (a[1].seq - b[1].seq) || 0)
+    .map(([scene,data]) => ({
     scene, count: data.count,
     shooter: data.cameras.size > 1 ? 'Both' : (data.cameras.size === 1 ? [...data.cameras][0] : ''),
   }));
