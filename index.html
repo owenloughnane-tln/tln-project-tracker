@@ -894,6 +894,22 @@
     .board-layout{flex-direction:column;}
     .board-info-panel{width:100%; border-left:none; border-top:1px solid var(--line); max-height:40vh;}
   }
+  /* storyboard viewer uses the whole screen: wider page, image scales with the window, panel is proportional */
+  body #app:has(.board-frame){max-width:100%; margin:0 auto; padding:0 clamp(10px, 2vw, 32px);}
+  .board-image-area{min-height:320px; height:calc(100vh - 250px); cursor:zoom-in;}
+  .board-img{cursor:zoom-in;}
+  .board-info-panel .imgset-thumb img{cursor:zoom-in;}
+  .board-info-panel .imgset-grid{grid-template-columns:repeat(auto-fill, minmax(min(100%, 240px), 1fr));}
+  .tln-lightbox{position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.92); display:flex; align-items:center; justify-content:center; cursor:zoom-out;}
+  .tln-lightbox img{max-width:96vw; max-height:94vh; object-fit:contain; display:block;}
+  .tln-lightbox button{position:absolute; border:none; background:rgba(255,255,255,0.16); color:#fff; width:44px; height:44px; border-radius:50%; font-size:24px; cursor:pointer;}
+  .tln-lightbox .lb-close{top:16px; right:16px;} .tln-lightbox .lb-prev{left:16px; top:50%; transform:translateY(-50%);} .tln-lightbox .lb-next{right:16px; top:50%; transform:translateY(-50%);}
+  .board-layout:has(.board-info-panel) .board-image-area{min-width:0;}
+  .board-info-panel{width:clamp(240px, 26vw, 440px); max-height:none; align-self:stretch;}
+  @media (max-width:700px){
+    .board-image-area{height:auto; aspect-ratio:16/9; min-height:0; max-height:55vh;}
+    .board-info-panel{width:100%; max-height:40vh;}
+  }
   .board-tools{display:flex; gap:6px;}
   .board-tool-btn{padding:7px; border-radius:6px; border:1px solid var(--line); background:var(--panel); color:var(--text-dim); cursor:pointer; display:flex; align-items:center; justify-content:center;}
   .board-tool-btn.active{background:var(--amber); color:#111; border-color:var(--amber); font-weight:700;}
@@ -2720,6 +2736,43 @@ function formatBoardCountdown(ms){
   const s = totalSec % 60;
   return sign + (h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`);
 }
+// click-to-enlarge for storyboard + lighting plan images
+function openLightbox(srcs, idx){
+  if(!srcs.length) return;
+  let i = idx;
+  const bg = document.createElement('div');
+  bg.className = 'tln-lightbox';
+  const close = () => { bg.remove(); document.removeEventListener('keydown', onKey); };
+  const show = () => {
+    bg.innerHTML = `<img src="${srcs[i]}" alt="">
+      <button class="lb-close" aria-label="Close">&times;</button>
+      ${srcs.length > 1 ? `<button class="lb-prev" aria-label="Previous">&#8249;</button><button class="lb-next" aria-label="Next">&#8250;</button>` : ''}`;
+  };
+  const onKey = e => {
+    if(e.key === 'Escape') close();
+    else if(srcs.length > 1 && e.key === 'ArrowRight'){ i = (i+1) % srcs.length; show(); }
+    else if(srcs.length > 1 && e.key === 'ArrowLeft'){ i = (i-1+srcs.length) % srcs.length; show(); }
+  };
+  bg.addEventListener('click', e => {
+    if(e.target.closest('.lb-prev')){ i = (i-1+srcs.length) % srcs.length; show(); }
+    else if(e.target.closest('.lb-next')){ i = (i+1) % srcs.length; show(); }
+    else close();
+  });
+  document.addEventListener('keydown', onKey);
+  show();
+  document.body.appendChild(bg);
+}
+document.addEventListener('click', ev => {
+  const t = ev.target;
+  if(!(t instanceof Element)) return;
+  const thumb = t.closest('.board-info-panel .imgset-thumb img');
+  if(thumb){
+    const all = [...thumb.closest('.imgset-grid').querySelectorAll('.imgset-thumb img')];
+    openLightbox(all.map(x => x.src), all.indexOf(thumb));
+    return;
+  }
+  if(t.matches('.board-image-area .board-img')) openLightbox([t.src], 0);
+});
 function renderBoardShotViewer(app, project, shotIdx){
   if(boardClockInterval){ clearInterval(boardClockInterval); boardClockInterval = null; }
   const shotStep = (project.steps || []).find(isShotListStep);
