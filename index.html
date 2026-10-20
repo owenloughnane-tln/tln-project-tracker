@@ -1538,6 +1538,22 @@ function wireShootDateList(bg){
     if(trigger) openDatePicker(trigger);
   });
 }
+// catch-all for however a shoot date got added (Edit details, the Budget's camera operator days, an
+// older project that never had one): any wedding shoot day with no equipment list yet gets the
+// wedding kit. A day whose list exists — even if emptied on purpose — is left alone.
+async function syncWeddingEquipment(project){
+  if(!project || project.projectType !== 'wedding' || project.deletedAt) return false;
+  const step = (project.steps || []).find(isEquipmentListsStep);
+  if(!step) return false;
+  const missing = getShootDates(project).filter(d => !step.equipmentByDay || step.equipmentByDay[d] === undefined);
+  if(!missing.length) return false;
+  if(!applyWeddingPresetForNewDays(project, missing)) return false;
+  touchProject(project);
+  const ok = await saveProjects();
+  const ok2 = await saveEntities();
+  if(ok && ok2) showToast(`Wedding equipment added for ${missing.length === 1 ? 'the shoot day' : missing.length + ' shoot days'}`);
+  return true;
+}
 // auto-adds the wedding preset's equipment to a project's Equipment lists step for any newly
 // added shoot day (wedding projects only), and tags those entities as "Used in Project" for it
 function applyWeddingPresetForNewDays(project, newDays){
@@ -3401,6 +3417,7 @@ function renderCalendarView(app, scopeProject){
 }
 
 function renderDetail(app, p){
+  syncWeddingEquipment(p); // no-op unless a wedding has a shoot day without its equipment list yet
   const stage = deriveStage(p);
   const dotClass = projectDotClass(p);
   const stageText = stage === 'wrap' ? 'Wrapped' : stage ? stageLabel(stage) : 'Not started';
@@ -6191,6 +6208,7 @@ function openBudgetModal(project, step, sideRight){
       }
       touchProject(project);
       const ok = await saveProjects();
+      await syncWeddingEquipment(project);
       bg.remove();
       showToast(ok ? 'Budget saved' : 'Save failed', !ok);
       if(ok) render();
@@ -7734,6 +7752,7 @@ function openScheduleModal(project, step, sideRight){
         <h3>Shooting schedule of day</h3>
         ${days.length ? days.map(dayHtml).join('') : `<p class="empty small">Add shoot days in Edit details to build a schedule.</p>`}
         <div class="modal-actions">
+          ${days.length ? `<button class="btn ghost" id="schedPdf" style="flex:1;">Export PDF</button>` : ''}
           <button class="btn primary" id="schedSave" style="flex:1;">Close</button>
         </div>
       </div>`;
@@ -7743,6 +7762,88 @@ function openScheduleModal(project, step, sideRight){
   }
 
   // every edit in this panel saves immediately — no separate Save step to remember
+  // client-ready PDF of the whole schedule: one section per shoot day, a clean time-by-time table.
+  // Internal bits (leaving the studio, driving) are left out; everything else matches the panel.
+  function exportSchedulePdf(){
+    if(typeof window.jspdf === 'undefined'){ showToast("Couldn't load the PDF writer — check your connection and try again", true); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'pt', format:'a4' });
+    const PW = doc.internal.pageSize.getWidth(), PH = doc.internal.pageSize.getHeight();
+    const M = 44, timeW = 130;
+    let y = M, first = true, drewAny = false;
+    const need = h => { if(y + h > PH - M){ doc.addPage(); y = M; } };
+    const text = (str, x, size, style, color) => {
+      doc.setFont('helvetica', style || 'normal'); doc.setFontSize(size); doc.setTextColor(color === undefined ? 17 : color);
+      doc.text(str, x, y);
+    };
+
+    days.forEach((day, i) => {
+      const t = dayTimings(day);
+      if(!t || t.shootEnd === null) return; // needs arrive + leave times to make a schedule
+      if(!first){ doc.addPage(); y = M; }
+      first = false; drewAny = true;
+      const groups = sceneGroups(day.date);
+      const alloc = allocateScenes(day, groups);
+      const m = morningSchedule(day);
+      const dayLabel = shootDates.length > 1 ? `Day ${i + 1} — ` : '';
+
+      text(project.name, M, 20, 'bold'); y += 18;
+      text(`Shooting schedule · ${dayLabel}${day.date ? fmtDate(day.date) : ''}`, M, 11, 'normal', 100); y += 10;
+      doc.setDrawColor(190); doc.line(M, y, PW - M, y); y += 20;
+
+      // chronological rows: [time, title, detail]
+      const rows = [];
+      rows.push([m.arriveLocation, 'Arrive at location', '']);
+      rows.push([m.setupRange, 'Equipment set up', '']);
+      rows.push([m.debriefRange, 'Debrief', '']);
+      rows.push([m.startClock, 'Start shooting', '']);
+      alloc.items.forEach(g => {
+        if(g.isLunch) rows.push([g.range, 'Lunch break', '']);
+        else if(g.isChange) rows.push([g.range, 'Set up change', `${g.minutes} min`]);
+        else {
+          const bits = [`${g.count} shot${g.count === 1 ? '' : 's'}`];
+          if(g.shooter) bits.push(g.shooter === 'Both' ? 'Cameras A & B' : `Camera ${g.shooter}`);
+          rows.push([g.range || '', (g.scene === '(No scene set)' ? g.scene : `Scene ${g.scene}`), bits.join(' · ')]);
+        }
+      });
+      rows.push([m.end.wrapClock, 'Shooting ends', '']);
+      rows.push([m.end.packRange, 'Pack down', '']);
+      rows.push([m.end.leaveClock, 'Leave location', '']);
+
+      rows.forEach(([time, title, detail], k) => {
+        const rowH = 26;
+        need(rowH);
+        if(k % 2 === 0){ doc.setFillColor(246, 246, 246); doc.rect(M - 6, y - 15, PW - 2 * M + 12, rowH, 'F'); }
+        text(time, M, 10.5, 'normal', 90);
+        text(title, M + timeW, 11, 'bold');
+        if(detail){ doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(110); doc.text(detail, PW - M, y, { align:'right' }); }
+        y += rowH;
+      });
+      y += 10;
+
+      const crew = operatorsForDay(day.date).map(o => o.role);
+      const others = (day.others || []).map(o => (o.text || '').trim()).filter(Boolean);
+      if(crew.length || others.length){
+        need(60);
+        y += 6; text("Who's on set", M, 12, 'bold'); y += 16;
+        const lines = [];
+        if(crew.length) lines.push('Crew: ' + crew.join(', '));
+        others.forEach(o => lines.push(o));
+        lines.forEach(l => doc.splitTextToSize(l, PW - 2 * M).forEach(part => { need(16); text(part, M, 10.5, 'normal', 60); y += 15; }));
+      }
+    });
+
+    if(!drewAny){ showToast('Set arrive and leave times first — there is no schedule to export yet', true); return; }
+    const total = doc.getNumberOfPages();
+    for(let p = 1; p <= total; p++){
+      doc.setPage(p);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(150);
+      doc.text(`${project.name} · page ${p} of ${total}`, M, PH - 22);
+    }
+    doc.save(`${(project.name || 'project').replace(/[^a-z0-9]+/gi, '-')}-shooting-schedule.pdf`);
+    showToast('Schedule PDF downloaded');
+  }
+
   async function persistSchedule(){
     step.scheduleDays = days;
     touchStep(step);
@@ -7773,6 +7874,20 @@ function openScheduleModal(project, step, sideRight){
         days[idx].others[parseInt(el.dataset.otherfield,10)].text = el.value;
       });
       el.addEventListener('change', () => persistSchedule());
+    });
+    // repaint while a number box is being typed in, then put the cursor back where it was, so the
+    // times update as you type rather than only after you tap away
+    function livePaint(selector){
+      paint();
+      const again = bg.querySelector(selector);
+      if(again){ const v = again.value; again.focus(); again.value = ''; again.value = v; }
+    }
+    bg.querySelectorAll('[data-schedfield="setupMinutes"], [data-schedfield="debriefMinutes"], [data-schedfield="packMinutes"], [data-schedfield="driveMinutes"], [data-schedfield="lunchMinutes"]').forEach(el => {
+      el.addEventListener('input', () => {
+        const idx = parseInt(el.dataset.idx, 10);
+        days[idx][el.dataset.schedfield] = el.value;
+        livePaint(`[data-schedfield="${el.dataset.schedfield}"][data-idx="${idx}"]`);
+      });
     });
     bg.querySelectorAll('[data-schedfield]').forEach(el => {
       el.addEventListener('change', () => {
@@ -7814,6 +7929,12 @@ function openScheduleModal(project, step, sideRight){
     });
     bg.querySelectorAll('[data-scenemin]').forEach(el => {
       const { dayIdx, scene } = parseSceneKey(el.dataset.scenemin);
+      el.addEventListener('input', () => {
+        const n = parseFloat(el.value);
+        if(!(n > 0)) return;
+        days[dayIdx].sceneMinutes[scene] = String(n);
+        livePaint(`[data-scenemin="${el.dataset.scenemin.replace(/"/g, '\\"')}"]`);
+      });
       el.addEventListener('change', () => {
         const n = parseFloat(el.value);
         if(n > 0) days[dayIdx].sceneMinutes[scene] = String(n);
@@ -7836,13 +7957,18 @@ function openScheduleModal(project, step, sideRight){
         const { dayIdx, scene } = parseSceneKey(el.dataset.addchange);
         days[dayIdx].setupChanges[scene] = '15';
         paint();
+        const box = bg.querySelector(`[data-changemin="${el.dataset.addchange.replace(/"/g, '\\"')}"]`);
+        if(box){ box.focus(); box.select(); }
         persistSchedule();
       });
     });
     bg.querySelectorAll('[data-changemin]').forEach(el => {
       const { dayIdx, scene } = parseSceneKey(el.dataset.changemin);
-      el.addEventListener('input', () => { days[dayIdx].setupChanges[scene] = el.value; });
-      el.addEventListener('change', () => { paint(); persistSchedule(); });
+      el.addEventListener('input', () => {
+        days[dayIdx].setupChanges[scene] = el.value;
+        livePaint(`[data-changemin="${el.dataset.changemin.replace(/"/g, '\\"')}"]`);
+      });
+      el.addEventListener('change', () => { persistSchedule(); });
     });
     bg.querySelectorAll('[data-removechange]').forEach(el => {
       el.addEventListener('click', () => {
@@ -7864,6 +7990,8 @@ function openScheduleModal(project, step, sideRight){
         if(ok) paint();
       });
     });
+    const pdfBtn = bg.querySelector('#schedPdf');
+    if(pdfBtn) pdfBtn.addEventListener('click', () => exportSchedulePdf());
     bg.querySelector('#schedSave').addEventListener('click', () => {
       bg.remove();
       render();
