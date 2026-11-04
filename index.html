@@ -7914,9 +7914,23 @@ function openScheduleModal(project, step, sideRight){
       leaveStudio: c(t.arrive - driveMin),
       arriveLocation: c(t.arrive),
       debriefFirst: !!day.debriefFirst,
+      setupStartMin: day.debriefFirst ? t.arrive + t.debriefMins : t.arrive,
+      debriefStartMin: day.debriefFirst ? t.arrive : t.setupEnd,
       setupRange: day.debriefFirst ? `${c(t.arrive + t.debriefMins)} – ${c(t.shootStart)}` : `${c(t.arrive)} – ${c(t.setupEnd)}`,
       debriefRange: day.debriefFirst ? `${c(t.arrive)} – ${c(t.arrive + t.debriefMins)}` : `${c(t.setupEnd)} – ${c(t.shootStart)}`,
       startClock: c(t.shootStart),
+      // when a camera starts before the rest of the set up is done, shooting starts then, and it says which camera
+      startRows: (() => {
+        const al = allocateScenes(day, sceneGroups(day.date));
+        const first = al.timeline.find(e => e.kind === 'unit');
+        if(first && first.unit.type === 'par'){
+          const lanes = ['A', 'B'].map(L => ({ L, it: (first.lanes[L] || []).find(x => !x.isChange) })).filter(x => x.it && x.it.startMin !== null && x.it.startMin !== undefined);
+          if(lanes.some(x => x.it.startMin < t.shootStart)){
+            return lanes.sort((a, b) => a.it.startMin - b.it.startMin).map(x => ({ label: `Camera ${x.L} starts shooting`, clock: c(x.it.startMin), min: x.it.startMin }));
+          }
+        }
+        return [{ label: 'Start shooting', clock: c(t.shootStart), min: t.shootStart }];
+      })(),
       driveMin,
       end: t.shootEnd === null ? null : {
         wrapClock: c(t.shootEnd),
@@ -7930,9 +7944,13 @@ function openScheduleModal(project, step, sideRight){
       <div class="sched-item"><div class="sched-item-scene">Leave studio</div><div class="sched-item-meta">${esc(morning.leaveStudio)}</div></div>
       ${morning.driveMin > 0 ? `<div class="sched-item sched-drive"><div class="sched-item-scene">Driving</div><div class="sched-item-meta">${morning.driveMin} min</div></div>` : ''}
       <div class="sched-item"><div class="sched-item-scene">Arrive at location</div><div class="sched-item-meta">${esc(morning.arriveLocation)}</div></div>
-      ${(morning.debriefFirst ? ['debrief', 'setup'] : ['setup', 'debrief']).map((w, wi) => `
-      <div class="sched-item"><div class="sched-item-scene">${w === 'setup' ? 'Equipment set up' : 'Debrief'}</div><div class="sched-item-meta"><button type="button" class="mo-btn" data-swapmorning="1" title="${wi === 0 ? 'Do this second instead' : 'Do this first instead'}" style="margin-right:8px;">${wi === 0 ? '▼' : '▲'}</button>${esc(w === 'setup' ? morning.setupRange : morning.debriefRange)}</div></div>`).join('')}
-      <div class="sched-item"><div class="sched-item-scene">Start shooting</div><div class="sched-item-meta">${esc(morning.startClock)}</div></div>`;
+      ${(() => {
+        const prep = (morning.debriefFirst ? ['debrief', 'setup'] : ['setup', 'debrief']).map((w, wi) => ({
+          min: w === 'setup' ? morning.setupStartMin : morning.debriefStartMin, tie: 0,
+          html: `<div class="sched-item"><div class="sched-item-scene">${w === 'setup' ? 'Equipment set up' : 'Debrief'}</div><div class="sched-item-meta"><button type="button" class="mo-btn" data-swapmorning="1" title="${wi === 0 ? 'Do this second instead' : 'Do this first instead'}" style="margin-right:8px;">${wi === 0 ? '▼' : '▲'}</button>${esc(w === 'setup' ? morning.setupRange : morning.debriefRange)}</div></div>` }));
+        const starts = morning.startRows.map(r => ({ min: r.min, tie: 1, html: `<div class="sched-item"><div class="sched-item-scene">${esc(r.label)}</div><div class="sched-item-meta">${esc(r.clock)}</div></div>` }));
+        return prep.concat(starts).sort((x, y) => (x.min - y.min) || (x.tie - y.tie)).map(x => x.html).join('');
+      })()}`;
   }
   function endItemsHtml(morning){
     if(!morning || !morning.end) return '';
@@ -8401,27 +8419,28 @@ function openScheduleModal(project, step, sideRight){
         y += 14;
       }
 
-      // chronological schedule
+      // chronological schedule — every row carries its start (in minutes) so the list is in clock order
       const rows = [];
-      rows.push([m.arriveLocation, 'Arrive at location', '', '']);
-      (m.debriefFirst ? [[m.debriefRange, 'Debrief'], [m.setupRange, 'Equipment set up']] : [[m.setupRange, 'Equipment set up'], [m.debriefRange, 'Debrief']]).forEach(([a, b]) => rows.push([a, b, '', '']));
-      rows.push([m.startClock, 'Start shooting', '', '']);
+      rows.push([m.arriveLocation, 'Arrive at location', '', '', t.arrive]);
+      (m.debriefFirst ? [[m.debriefRange, 'Debrief', m.debriefStartMin], [m.setupRange, 'Equipment set up', m.setupStartMin]] : [[m.setupRange, 'Equipment set up', m.setupStartMin], [m.debriefRange, 'Debrief', m.debriefStartMin]]).forEach(([a, b, mn]) => rows.push([a, b, '', '', mn]));
+      m.startRows.forEach(r => rows.push([r.clock, r.label, '', '', r.min + 0.1]));
       const camTxt = g => g.shooter === 'Both' ? 'A & B' : (g.shooter ? g.shooter : '');
       alloc.timeline.forEach(en => {
-        if(en.kind === 'block' || en.kind === 'point' || en.kind === 'free'){ rows.push([en.range, en.label, '', '']); return; }
+        if(en.kind === 'block' || en.kind === 'point' || en.kind === 'free'){ rows.push([en.range, en.label, '', '', en.startMin]); return; }
         const its = [];
         Object.keys(en.lanes).forEach(key => en.lanes[key].forEach(g => its.push(g)));
         its.sort((a, b) => ((a.startMin || 0) - (b.startMin || 0)) || ((a.lane === 'B') - (b.lane === 'B')));
         its.forEach(g => {
-          if(g.isChange) rows.push([g.range || '', 'Set up change', '', (en.unit.type === 'par' ? g.lane : '')]);
-          else rows.push([g.range || '', (g.scene === '(No scene set)' || /^scene\b/i.test(g.scene) ? g.scene : `Scene ${g.scene}`) + ` · ${g.count} shot${g.count === 1 ? '' : 's'}`, scheduleSceneLocation(project, day.date, g.scene), camTxt(g)]);
+          if(g.isChange) rows.push([g.range || '', 'Set up change', '', (en.unit.type === 'par' ? g.lane : ''), g.startMin || 0]);
+          else rows.push([g.range || '', (g.scene === '(No scene set)' || /^scene\b/i.test(g.scene) ? g.scene : `Scene ${g.scene}`) + ` · ${g.count} shot${g.count === 1 ? '' : 's'}`, scheduleSceneLocation(project, day.date, g.scene), camTxt(g), (g.startMin || 0) + 0.2]);
         });
       });
-      rows.push([m.end.wrapClock, 'Shooting ends', '', '']);
-      rows.push([m.end.packRange, 'Pack down', '', '']);
-      rows.push([m.end.leaveClock, 'Leave location', '', '']);
+      rows.push([m.end.wrapClock, 'Shooting ends', '', '', t.shootEnd + 0.3]);
+      rows.push([m.end.packRange, 'Pack down', '', '', t.shootEnd + 0.4]);
+      rows.push([m.end.leaveClock, 'Leave location', '', '', t.leave + 0.5]);
+      const sortedRows = rows.map((r, k) => ({ r, k })).sort((p, q) => (p.r[4] - q.r[4]) || (p.k - q.k)).map(x => x.r.slice(0, 4));
       text('SCHEDULE', M, 8.5, 'bold', 120); y += 14;
-      table(['TIME', 'WHAT', 'WHERE', 'CAMERA'], rows, [115, 190, 110, 48], [M, M + 120, M + 316, PW - M - 48], 8);
+      table(['TIME', 'WHAT', 'WHERE', 'CAMERA'], sortedRows, [115, 190, 110, 48], [M, M + 120, M + 316, PW - M - 48], 8);
     });
 
     if(!drewAny){ showToast('Set arrive and leave times first — there is no schedule to export yet', true); return; }
