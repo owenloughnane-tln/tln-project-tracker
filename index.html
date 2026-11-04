@@ -26,6 +26,7 @@
     --radius: 10px;
     --btn-bg: #111;
     --btn-fg: #fff;
+    --logo: #000;
     color-scheme: light;
   }
   :root[data-theme="dark"]{
@@ -42,6 +43,7 @@
     --yellow: #EDBB2C;
     --btn-bg: #ececec;
     --btn-fg: #111;
+    --logo: #fff;
     color-scheme: dark;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
@@ -77,12 +79,13 @@
     margin-bottom: 16px;
     position: sticky; top:0; background:var(--bg); z-index: 5;
   }
-  .wordmark{display:flex; align-items:center; gap:10px;}
+  .wordmark{display:flex; align-items:center; gap:8px; flex:none; margin-right:14px;}
   .wordmark h1{font-size:17px; letter-spacing:-0.01em; margin:0; font-weight:700; text-transform:none;}
   .wordmark span{display:none;}
+  .tln-logo{height:22px; width:auto; flex:none; display:block; color:var(--logo);}
   .topbar-nav{display:flex; align-items:center; gap:4px; margin-left:auto;}
   .nav-pill{
-    background:none; border:none; padding:7px 14px; cursor:pointer; border-radius:999px;
+    background:none; border:none; padding:7px 10px; cursor:pointer; border-radius:999px;
     font-family:var(--display); font-size:13.5px; color:var(--text-dim); font-weight:500;
   }
   .nav-pill.active{background:var(--panel); color:var(--text); font-weight:600; box-shadow:0 0 0 1px var(--line);}
@@ -194,6 +197,28 @@
   .sched-seg-lunch{background:repeating-linear-gradient(45deg, var(--yellow), var(--yellow) 4px, var(--panel) 4px, var(--panel) 8px) !important;}
   .sched-list{display:flex; flex-direction:column; gap:6px;}
   .sched-item-wrap{display:flex; flex-direction:column;}
+  .clk-head{display:flex; align-items:center; justify-content:center; gap:4px; margin-bottom:12px;}
+  .clk-digit{font-family:var(--mono); font-size:40px; font-weight:600; background:var(--panel-2); color:var(--text-dim); border:none; border-radius:10px; padding:6px 14px; cursor:pointer;}
+  .clk-digit.on{background:var(--btn-bg); color:var(--btn-fg);}
+  .clk-colon{font-size:36px; font-weight:600; color:var(--text);}
+  .clk-ampm{display:flex; flex-direction:column; gap:4px; margin-left:10px;}
+  .clk-ampm button{font-family:var(--mono); font-size:12px; font-weight:600; border:1px solid var(--line); background:none; color:var(--text-dim); border-radius:6px; padding:6px 10px; cursor:pointer;}
+  .clk-ampm button.on{background:var(--btn-bg); color:var(--btn-fg); border-color:var(--btn-bg);}
+  .clk-dial{width:100%; max-width:260px; display:block; margin:0 auto 14px; touch-action:none; color:var(--text); user-select:none;}
+  .clk-face{fill:var(--panel-2);}
+  .clk-hand{stroke:var(--btn-bg); stroke-width:2;}
+  .clk-pin{fill:var(--btn-bg);}
+  .clk-sel{fill:var(--btn-bg);}
+  .sched-loc{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); font-weight:400; margin-top:2px; word-break:break-word;}
+  .sched-fixed{border-left:3px solid var(--amber);}
+  .sched-fixed-row{display:grid; grid-template-columns:1fr 1fr 28px; gap:6px; align-items:end; margin-top:8px;}
+  .sched-fixed-row > .sl-input{grid-column:1 / 3;}
+  .sched-par{display:grid; grid-template-columns:1fr 1fr; gap:8px; align-items:start;}
+  .sched-lane{min-width:0; display:flex; flex-direction:column; gap:6px; border-left:2px solid var(--line); padding-left:6px;}
+  .sched-lane-head{font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim);}
+  .sched-person{margin:6px 0 10px;}
+  .sched-when{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:4px;}
+  .sched-when > .sl-input{grid-column:1 / 3;}
   .sched-item{display:flex; align-items:baseline; justify-content:space-between; gap:8px; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:7px 10px;}
   .sched-item.sched-clickable{cursor:pointer;}
   .sched-item.sched-clickable:hover, .sched-item.sched-open{border-color:var(--text);}
@@ -244,7 +269,7 @@
   .gantt-axis-days{display:flex;}
   .gantt-axis-day{
     flex:none; text-align:center; font-family:var(--mono); font-size:9px; color:var(--text-dim);
-    padding:6px 2px; border-right:1px dashed var(--line); white-space:nowrap; overflow:hidden;
+    padding:6px 2px; border-right:1px solid var(--line); white-space:nowrap; overflow:hidden;
   }
   .gantt-rows{position:relative;}
   .gantt-row{display:flex; border-bottom:1px solid var(--line); cursor:pointer;}
@@ -689,12 +714,13 @@
     margin-bottom: 18px;
     position: sticky; top:0; background:var(--bg); z-index: 5;
   }
-  .wordmark{display:flex; align-items:center; gap:10px;}
+  .wordmark{display:flex; align-items:center; gap:8px; flex:none; margin-right:14px;}
   .wordmark h1{font-size:17px; letter-spacing:-0.01em; margin:0; font-weight:700; text-transform:none;}
   .wordmark span{display:none;}
+  .tln-logo{height:22px; width:auto; flex:none; display:block; color:var(--logo);}
   .topbar-nav{display:flex; align-items:center; gap:4px; margin-left:auto;}
   .nav-pill{
-    background:none; border:none; padding:7px 14px; cursor:pointer; border-radius:999px;
+    background:none; border:none; padding:7px 10px; cursor:pointer; border-radius:999px;
     font-family:var(--display); font-size:13.5px; color:var(--text-dim); font-weight:500;
   }
   .nav-pill.active{background:var(--panel); color:var(--text); font-weight:600; box-shadow:0 0 0 1px var(--line);}
@@ -940,6 +966,7 @@
 </head>
 <body>
 <div id="app"><div class="loading">Loading project log…</div></div>
+<div style="max-width:640px; margin:0 auto; padding:16px; font:10px var(--mono); color:var(--text-dim); text-align:center; opacity:.6;">build 4 Nov · 11:25</div>
 
 <script>
 // Backs window.storage with Supabase's REST API (PostgREST) instead of relying on Claude's
@@ -1864,7 +1891,7 @@ function gatherCalendarEvents(){
       }
       if(s.budget && s.budget.operators){
         s.budget.operators.forEach(op => {
-          const isCamera = (op.role||'').toLowerCase().includes('camera');
+          const isCamera = isCameraCrewRole(op.role);
           if(isCamera) return; // camera crew days are the same as shoot days — don't double them up
           (op.items || []).forEach(it => {
             if(it.date){
@@ -2409,12 +2436,21 @@ async function render(){
   }
 }
 
+// the default shooting crew line in the Budget — "twolastnames" now, "Camera ops" on older projects
+function isCameraCrewRole(role){
+  const r = (role || '').toLowerCase();
+  return r.includes('camera') || r.includes('twolastnames');
+}
+// the twolastnames mark: two circles and a slash. Strokes use currentColor, so it follows --logo
+// (black in light mode, white in dark mode)
+const TLN_LOGO_SVG = `<svg class="tln-logo" viewBox="226 226 900 748" role="img" aria-label="twolastnames logo" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-width="25"><circle cx="599.5" cy="599.5" r="349.5"/><circle cx="712" cy="486" r="165"/><line x1="250" y1="905" x2="1110" y2="515"/></g></svg>`;
 function renderHeader(activeApp){
   activeApp = activeApp || 'projects';
   const name = getContributorName();
   return `
     <div class="topbar">
       <div class="wordmark">
+        ${TLN_LOGO_SVG}
         <div><h1>twolastnames</h1></div>
       </div>
       <div class="topbar-nav">
@@ -2757,13 +2793,14 @@ function computeShotTimeSlot(project, shot){
   if(!dayData || !dayData.start || !dayData.end) return null;
   migrateScheduleDay(dayData);
   const key = shot.scene || '(No scene set)';
-  const { items } = allocateScenes(dayData, scheduleSceneGroups(project, shot.day));
-  const item = items.find(x => !x.isLunch && !x.isChange && x.scene === key);
+  const { items } = allocateScenes(dayData, scheduleSceneGroups(project, shot.day, dayData));
+  const item = items.find(x => !x.isLunch && !x.isBlock && !x.isChange && x.scene === key);
   if(!item || item.startMin === null) return null;
   const sceneRows = scheduleRelevantRows(project, shot.day).filter(r => (r.scene || '(No scene set)') === key);
-  const idxInScene = sceneRows.findIndex(r => r.id === shot.id);
-  if(idxInScene === -1) return null;
-  const perShot = (item.endMin - item.startMin) / sceneRows.length;
+  const slots = sceneShotSlots(sceneRows);
+  const idxInScene = slots.slotOf[shot.id];
+  if(idxInScene === undefined) return null;
+  const perShot = (item.endMin - item.startMin) / slots.count;
   const toDate = (minutesFromMidnight) => {
     const d = new Date(shot.day + 'T00:00:00');
     d.setMinutes(d.getMinutes() + Math.round(minutesFromMidnight));
@@ -5477,7 +5514,7 @@ function openTimelineModal(project, timelineStepId, sideRight){
     return `
     <div class="gantt-row" data-tlpoint="${i}">
       <div class="gantt-row-label">${esc(pt.label)}</div>
-      <div class="gantt-row-track" style="width:${axisWidth}px;">${trackContent}</div>
+      <div class="gantt-row-track" style="width:${axisWidth}px; background-image:repeating-linear-gradient(to right, transparent 0, transparent ${pxPerDay - 1}px, var(--line) ${pxPerDay - 1}px, var(--line) ${pxPerDay}px);">${trackContent}</div>
     </div>`;
   }).join('');
 
@@ -5590,7 +5627,7 @@ function buildDefaultBudget(project){
       ];
   const budget = {
     operators: [
-      { id: uid(), role:'Camera ops', details:'', days: '', rate:cameraRate, count:'2', items:[] },
+      { id: uid(), role:'twolastnames', details:'', days: '', rate:cameraRate, count:'2', items:[] },
       { id: uid(), role:'Editor', details:'', days:'', rate:'150', count:'1', items: editorItems },
     ],
     rows: otherCostRows,
@@ -5872,7 +5909,7 @@ function openBudgetModal(project, step, sideRight){
   // and saving writes those dates back to the project.
   const firstOp = budget.operators[0];
   if(firstOp){
-    const isCamera = (firstOp.role||'').toLowerCase().includes('camera') || !firstOp.role;
+    const isCamera = isCameraCrewRole(firstOp.role) || !firstOp.role;
     const shootDates = getShootDates(project);
     if(isCamera && shootDates.length){
       const existingByDate = {};
@@ -6187,7 +6224,7 @@ function openBudgetModal(project, step, sideRight){
     });
     bg.querySelector('#bgExportPdf').addEventListener('click', () => exportBudgetPdf(project, step, budget));
     bg.querySelector('#bgSave').addEventListener('click', async () => {
-      const camOp = budget.operators.find(o => (o.role||'').toLowerCase().includes('camera'));
+      const camOp = budget.operators.find(o => isCameraCrewRole(o.role));
       if(camOp && camOp.items && camOp.items.length){
         const dates = camOp.items.map(it => it.date).filter(Boolean).sort();
         if(dates.length) project.shootDates = dates;
@@ -6483,7 +6520,7 @@ function activeShotlistCols(projectType){
 }
 // per-column widths so narrow fields like Camera don't take as much room as Scene or Shot
 const SHOTLIST_COL_WIDTHS = {
-  day: 150, location: 150, order: 70, scene: 70, camera: 60, lens: 80,
+  day: 150, location: 200, order: 70, scene: 70, camera: 60, lens: 80,
   shot: 70, shotType: 90, movement: 100, script: 150, intention: 150, multicam: 70, vfx: 90,
 };
 // alternate header spellings a spreadsheet might use for each column, matched case-insensitively
@@ -6788,8 +6825,19 @@ function openShotListModal(project, step, sideRight){
     if(key === 'location'){
       const addr = findAddress(r.day, r.scene);
       const locationValue = r.location !== undefined && r.location !== '' ? r.location : (addr || '');
-      const locationHint = addr === null && r.day && r.scene ? `<div class="sl-hint">No Location Scout entry yet — add one there.</div>` : '';
-      return `<td><input class="sl-input" style="width:${w}px;" data-slfield="location" data-idx="${i}" value="${esc(locationValue)}" placeholder="Location">${locationHint}</td>`;
+      const locationHint = '';
+      // every address saved in Location scout, across all days — plus whatever this row already holds
+      const addrList = [];
+      // read Location scout fresh each time, so a location added there shows up straight away
+      const liveProject = (typeof byId === 'function' && byId(project.id)) || project;
+      const liveLoc = (liveProject.steps || []).find(isLocationStep) || locStep;
+      ((liveLoc && liveLoc.locationRows) || []).forEach(lr => (lr.entries || []).forEach(en => {
+        const a = (en.address || '').trim();
+        if(a && !addrList.includes(a)) addrList.push(a);
+      }));
+      if(locationValue && !addrList.includes(locationValue)) addrList.push(locationValue);
+      const opts = `<option value="">${addrList.length ? 'Select location…' : 'No locations yet'}</option>` + addrList.map(a => `<option value="${esc(a)}" ${a === locationValue ? 'selected' : ''}>${esc(a)}</option>`).join('');
+      return `<td><select class="sl-input" style="width:${w}px;" data-slfield="location" data-idx="${i}" title="${esc(locationValue)}">${opts}</select>${locationHint}${addrList.length ? '' : `<div class="sl-hint">Add locations in Location scout first.</div>`}</td>`;
     }
     if(key === 'scene'){
       return `<td><input class="sl-input" style="width:${w}px;" list="shotScenesList" data-slfield="scene" data-idx="${i}" value="${esc(r.scene||'')}" placeholder="${scenes.length ? 'Search scenes…' : 'Type scene'}"></td>`;
@@ -6966,6 +7014,39 @@ function openShotListModal(project, step, sideRight){
   paint();
 }
 
+// Panels repaint themselves by rebuilding their HTML (often on every keystroke). Wrap that so the
+// scroll position (vertical and sideways), the focused box and the cursor survive the repaint —
+// typing in any panel no longer jumps to the top.
+(function(){
+  const desc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+  Object.defineProperty(Element.prototype, 'innerHTML', {
+    configurable: true,
+    get(){ return desc.get.call(this); },
+    set(v){
+      const root = this;
+      if(!root.classList || !root.classList.contains('modal-bg') || !root.firstElementChild) return desc.set.call(root, v);
+      const pathOf = el => { const p = []; while(el !== root){ const par = el.parentElement; p.unshift(Array.prototype.indexOf.call(par.children, el)); el = par; } return p; };
+      const saved = [];
+      [root].concat([...root.querySelectorAll('*')]).forEach(el => { if(el.scrollTop || el.scrollLeft) saved.push({ p: el === root ? [] : pathOf(el), t: el.scrollTop, l: el.scrollLeft }); });
+      const ae = document.activeElement;
+      let focus = null;
+      if(ae && ae !== root && root.contains(ae) && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName) && ae.type !== 'file'){
+        let s = null, e = null; try{ s = ae.selectionStart; e = ae.selectionEnd; }catch(err){}
+        focus = { p: pathOf(ae), s, e, tag: ae.tagName };
+      }
+      desc.set.call(root, v);
+      const at = p => { let el = root; for(const i of p){ el = el && el.children[i]; } return el; };
+      saved.forEach(x => { const el = at(x.p); if(el){ el.scrollTop = x.t; el.scrollLeft = x.l; } });
+      if(focus){
+        const el = at(focus.p);
+        if(el && el.tagName === focus.tag){
+          el.focus({ preventScroll:true });
+          if(focus.s !== null){ try{ el.setSelectionRange(focus.s, focus.e); }catch(err){} }
+        }
+      }
+    }
+  });
+})();
 function minutesToClock(mins){
   mins = ((mins % (24*60)) + 24*60) % (24*60);
   const h = Math.floor(mins/60), m = mins%60;
@@ -6992,40 +7073,53 @@ function timeFieldHtml(id, value){
       <input type="hidden" id="${id}" value="${esc(value||'')}">
     </div>`;
 }
-// a scrollable list of 15-minute options styled like the rest of the app, with a manual field
-// underneath for anything more specific than a quarter-hour.
+// Android-style clock picker: tap the hour on the dial, it jumps to the minutes (5-minute steps),
+// tap AM / PM, Done. Drag round the dial works too. Same contract as before: writes the hidden
+// input and fires its 'change' event.
 function openTimePicker(triggerEl){
   const hidden = document.getElementById(triggerEl.dataset.timefield);
   const initial = hidden.value || '';
-  const [ih, im] = initial ? initial.split(':').map(Number) : [null, null];
-  let h = ih, m = im;
+  let h24, m;
+  if(initial){ [h24, m] = initial.split(':').map(Number); }
+  else { const now = new Date(); h24 = now.getHours(); m = Math.round(now.getMinutes() / 5) * 5 % 60; }
+  let mode = 'hour';
   const bg = document.createElement('div');
   bg.className = 'modal-bg picker-overlay';
+  const R = 100, C = 124;
+  const pos = (i, r) => { const a = i * Math.PI / 6; return [C + r * Math.sin(a), C - r * Math.cos(a)]; };
 
   function render(){
-    const hDisp = h===null ? '' : String(h).padStart(2,'0');
-    const mDisp = m===null ? '' : String(m).padStart(2,'0');
+    const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+    const pm = h24 >= 12;
+    const selIdx = mode === 'hour' ? h12 % 12 : Math.round(m / 5) % 12;
+    const [sx, sy] = pos(selIdx, R);
+    const exact = mode === 'minute' && m % 5 !== 0;
+    const labels = Array.from({ length: 12 }, (_, i) => {
+      const [x, y] = pos(i, R);
+      const txt = mode === 'hour' ? (i === 0 ? 12 : i) : String(i * 5).padStart(2, '0');
+      const on = i === selIdx && !exact;
+      return `<text x="${x}" y="${y + 5}" text-anchor="middle" font-size="15" font-family="var(--mono)" fill="${on ? '#fff' : 'currentColor'}" pointer-events="none">${txt}</text>`;
+    }).join('');
     bg.innerHTML = `
       <div class="modal time-picker-modal">
-        <h3>Select time</h3>
-        <div class="time-spinner">
-          <div class="time-spin-col">
-            <button type="button" class="time-spin-btn" id="tpHourUp" aria-label="Hour up">▲</button>
-            <input type="text" inputmode="numeric" maxlength="2" class="time-spin-digit" id="tpHourInput" value="${hDisp}" placeholder="--">
-            <button type="button" class="time-spin-btn" id="tpHourDown" aria-label="Hour down">▼</button>
-          </div>
-          <div class="time-spin-colon">:</div>
-          <div class="time-spin-col">
-            <button type="button" class="time-spin-btn" id="tpMinUp" aria-label="Minute up">▲</button>
-            <input type="text" inputmode="numeric" maxlength="2" class="time-spin-digit" id="tpMinInput" value="${mDisp}" placeholder="--">
-            <button type="button" class="time-spin-btn" id="tpMinDown" aria-label="Minute down">▼</button>
+        <div class="clk-head">
+          <button type="button" class="clk-digit${mode === 'hour' ? ' on' : ''}" id="clkH">${String(h12).padStart(2, '0')}</button>
+          <span class="clk-colon">:</span>
+          <button type="button" class="clk-digit${mode === 'minute' ? ' on' : ''}" id="clkM">${String(m).padStart(2, '0')}</button>
+          <div class="clk-ampm">
+            <button type="button" class="${!pm ? 'on' : ''}" id="clkAM">AM</button>
+            <button type="button" class="${pm ? 'on' : ''}" id="clkPM">PM</button>
           </div>
         </div>
-        <div class="time-spin-actions">
-          <button type="button" class="btn small" id="tpNow">Now</button>
-          <button type="button" class="btn small ghost" id="tpClear">Clear</button>
-        </div>
+        <svg id="clkDial" viewBox="0 0 248 248" class="clk-dial">
+          <circle cx="${C}" cy="${C}" r="120" class="clk-face"/>
+          <line x1="${C}" y1="${C}" x2="${sx}" y2="${sy}" class="clk-hand"/>
+          <circle cx="${C}" cy="${C}" r="4" class="clk-pin"/>
+          <circle cx="${sx}" cy="${sy}" r="21" class="clk-sel"/>
+          ${labels}
+        </svg>
         <div class="modal-actions">
+          <button class="btn ghost" id="tpClear" style="flex:0 0 auto;">Clear</button>
           <button class="btn ghost" id="tpCancel" style="flex:1;">Cancel</button>
           <button class="btn primary" id="tpDone" style="flex:1;">Done</button>
         </div>
@@ -7034,38 +7128,44 @@ function openTimePicker(triggerEl){
   }
 
   function wire(){
-    const hInput = bg.querySelector('#tpHourInput');
-    const mInput = bg.querySelector('#tpMinInput');
-    hInput.addEventListener('input', () => {
-      const v = hInput.value.replace(/\D/g,'').slice(0,2);
-      hInput.value = v;
-      const n = parseInt(v,10);
-      h = isNaN(n) ? null : Math.min(23, n);
+    const set24 = (h12, pm) => { h24 = (h12 % 12) + (pm ? 12 : 0); };
+    bg.querySelector('#clkH').addEventListener('click', () => { mode = 'hour'; render(); });
+    bg.querySelector('#clkM').addEventListener('click', () => { mode = 'minute'; render(); });
+    bg.querySelector('#clkAM').addEventListener('click', () => { h24 = h24 % 12; render(); });
+    bg.querySelector('#clkPM').addEventListener('click', () => { h24 = (h24 % 12) + 12; render(); });
+    const dial = bg.querySelector('#clkDial');
+    let dragging = false;
+    function pick(ev){
+      const r = dial.getBoundingClientRect();
+      const dx = ev.clientX - (r.left + r.width / 2), dy = ev.clientY - (r.top + r.height / 2);
+      let a = Math.atan2(dx, -dy) * 180 / Math.PI; if(a < 0) a += 360;
+      const idx = Math.round(a / 30) % 12;
+      if(mode === 'hour') set24(idx === 0 ? 12 : idx, h24 >= 12);
+      else m = idx * 5;
+      const [sx, sy] = pos(idx, R);
+      // move the hand and highlight without rebuilding the SVG, so dragging stays smooth
+      dial.querySelector('.clk-hand').setAttribute('x2', sx); dial.querySelector('.clk-hand').setAttribute('y2', sy);
+      dial.querySelector('.clk-sel').setAttribute('cx', sx); dial.querySelector('.clk-sel').setAttribute('cy', sy);
+      dial.querySelectorAll('text').forEach((t, i) => t.setAttribute('fill', i === idx ? '#fff' : 'currentColor'));
+      bg.querySelector(mode === 'hour' ? '#clkH' : '#clkM').textContent = mode === 'hour' ? String(h24 % 12 === 0 ? 12 : h24 % 12).padStart(2, '0') : String(m).padStart(2, '0');
+    }
+    dial.addEventListener('pointerdown', ev => { dragging = true; dial.setPointerCapture(ev.pointerId); pick(ev); });
+    dial.addEventListener('pointermove', ev => { if(dragging) pick(ev); });
+    dial.addEventListener('pointerup', ev => {
+      if(!dragging) return; dragging = false;
+      if(mode === 'hour'){ mode = 'minute'; render(); }
     });
-    hInput.addEventListener('blur', () => render());
-    mInput.addEventListener('input', () => {
-      const v = mInput.value.replace(/\D/g,'').slice(0,2);
-      mInput.value = v;
-      const n = parseInt(v,10);
-      m = isNaN(n) ? null : Math.min(59, n);
+    bg.querySelector('#tpClear').addEventListener('click', () => {
+      hidden.value = '';
+      triggerEl.querySelector('.dfield-text').textContent = 'Select time';
+      hidden.dispatchEvent(new Event('change', { bubbles:true }));
+      bg.remove();
     });
-    mInput.addEventListener('blur', () => render());
-    bg.querySelector('#tpHourUp').addEventListener('click', () => { h = ((h===null?-1:h)+1+24)%24; render(); });
-    bg.querySelector('#tpHourDown').addEventListener('click', () => { h = ((h===null?1:h)+23)%24; render(); });
-    bg.querySelector('#tpMinUp').addEventListener('click', () => { m = ((m===null?-15:m)+15+60)%60; render(); });
-    bg.querySelector('#tpMinDown').addEventListener('click', () => { m = ((m===null?15:m)+45)%60; render(); });
-    bg.querySelector('#tpNow').addEventListener('click', () => {
-      const now = new Date();
-      h = now.getHours();
-      m = Math.round(now.getMinutes()/15)*15 % 60;
-      render();
-    });
-    bg.querySelector('#tpClear').addEventListener('click', () => { h = null; m = null; render(); });
     bg.querySelector('#tpCancel').addEventListener('click', () => bg.remove());
     bg.querySelector('#tpDone').addEventListener('click', () => {
-      const finalVal = (h===null || m===null) ? '' : `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      const finalVal = `${String(h24).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
       hidden.value = finalVal;
-      triggerEl.querySelector('.dfield-text').textContent = finalVal ? formatClockValue(finalVal) : 'Select time';
+      triggerEl.querySelector('.dfield-text').textContent = formatClockValue(finalVal);
       hidden.dispatchEvent(new Event('change', { bubbles:true }));
       bg.remove();
     });
@@ -7334,24 +7434,99 @@ function migrateScheduleDay(day){
   day.v2 = true;
   return day;
 }
+// ---- helpers for the 5-minute grid: every schedule time lands on a multiple of 5 minutes ----
+function r5(n){ return Math.round(n / 5) * 5; }
+// how long a fixed time holds the day, in minutes: its end minus its start, or its minutes; 0 means it's just a
+// marker (no end, or an end that's the same as the start)
+function fixedTimeMinutes(x){
+  if(!x || !x.time) return 0;
+  if(x.end){
+    let e = r5(schedToMin(x.end)) - r5(schedToMin(x.time));
+    if(e < 0) e += 24*60;
+    return e > 0 ? dur5(e) : 0;
+  }
+  return dur5(x.minutes);
+}
+// a length in minutes, rounded to 5 (anything above 0 is at least 5)
+function dur5(v){ const n = parseFloat(v); return n > 0 ? Math.max(5, r5(n)) : 0; }
+// the camera(s) a scene belongs to: the shot list's camera column, unless overridden in the schedule
+function effShooter(day, g){
+  const o = ((day && day.sceneShooter) || {})[g.scene];
+  const v = String(o || g.shooter || '').toUpperCase();
+  if(v === 'A' || v === 'B') return v;
+  if(v === 'BOTH') return 'Both';
+  return '';
+}
+// A and B shoot at the same time (in different places) when the scenes are split between them,
+// unless the schedule has been told otherwise
+function isParallelDay(day, groups){
+  if(day && day.parallel === true) return true;
+  if(day && day.parallel === false) return false;
+  const sh = groups.map(g => effShooter(day, g));
+  return sh.includes('A') && sh.includes('B');
+}
+// where a scene is shot: the Shot list's location column first, then Location scout for that day/scene
+function scheduleSceneLocation(project, date, scene){
+  const rows = scheduleRelevantRows(project, date).filter(r => (r.scene || '(No scene set)') === scene);
+  const fromShots = rows.map(r => (r.location || '').trim()).find(Boolean);
+  if(fromShots) return fromShots;
+  const locStep = (project.steps || []).find(isLocationStep);
+  const norm = s => (s || '').trim().toLowerCase();
+  const row = locStep && (locStep.locationRows || []).find(r => r.date === date);
+  const e = row && (row.entries || []).find(en => norm(en.scene) === norm(scene));
+  return e ? (e.address || '').trim() : '';
+}
+// splits `total` whole ticks between slots in proportion to their weights (never below each slot's
+// minimum), so the pieces always add back up to exactly the total
+function splitTicks(total, weights, mins){
+  const out = mins.slice();
+  let rest = total - out.reduce((s, x) => s + x, 0);
+  if(rest <= 0 || !weights.length) return out;
+  const wSum = weights.reduce((s, x) => s + x, 0) || 1;
+  const exact = weights.map(w => rest * w / wSum);
+  const floors = exact.map(Math.floor);
+  floors.forEach((f, i) => { out[i] += f; });
+  let left = rest - floors.reduce((s, x) => s + x, 0);
+  exact.map((e, i) => [e - floors[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if(left > 0){ out[i] += 1; left--; } });
+  return out;
+}
+
 // arrive → set up → debrief → shooting → pack down → leave. Every length can be edited per day;
-// pack down follows ¾ of the set up time unless it's been set by hand.
+// pack down follows ¾ of the set up time unless it's been set by hand. All of it sits on the
+// 5-minute grid.
 function dayTimings(day){
   if(!day || !day.start) return null;
-  const arrive = schedToMin(day.start);
-  const setupMins = schedNum(day.setupMinutes, 45);
-  const debriefMins = schedNum(day.debriefMinutes, 15);
-  const autoPack = Math.round(setupMins * 0.75);
-  const packMins = (day.packMinutes !== undefined && day.packMinutes !== '') ? schedNum(day.packMinutes, autoPack) : autoPack;
+  const arrive = r5(schedToMin(day.start));
+  const setupMins = r5(schedNum(day.setupMinutes, 45));
+  const debriefMins = r5(schedNum(day.debriefMinutes, 15));
+  const autoPack = r5(setupMins * 0.75);
+  const packMins = (day.packMinutes !== undefined && day.packMinutes !== '') ? r5(schedNum(day.packMinutes, autoPack)) : autoPack;
   const setupEnd = arrive + setupMins;
   const shootStart = setupEnd + debriefMins;
   let leave = null, shootEnd = null;
   if(day.end){
-    leave = schedToMin(day.end);
+    leave = r5(schedToMin(day.end));
     if(leave <= arrive) leave += 24*60;
     shootEnd = leave - packMins;
   }
   return { arrive, setupMins, debriefMins, packMins, autoPack, setupEnd, shootStart, shootEnd, leave };
+}
+// Rows of one scene that share a shot number but are on different cameras (say shot 3 on camera A and
+// camera B) are one shot being filmed by both cameras at once, so they take up the time of a single shot.
+// Returns { slotOf: row id → slot number, count } in order of first appearance.
+function sceneShotSlots(rows){
+  const slotOf = {}, seen = {}, seenCam = {};
+  let count = 0;
+  rows.forEach(r => {
+    const num = String(r.shot || '').trim().toLowerCase();
+    if(!num){ slotOf[r.id] = count++; return; }
+    const cam = String(r.camera || '').trim().toUpperCase();
+    const occ = (seenCam[num + '|' + cam] = (seenCam[num + '|' + cam] || 0) + 1);
+    const key = num + '#' + occ;
+    if(seen[key] === undefined) seen[key] = count++;
+    slotOf[r.id] = seen[key];
+  });
+  return { slotOf, count };
 }
 function scheduleRelevantRows(project, date){
   const shotStep = (project.steps || []).find(isShotListStep);
@@ -7362,12 +7537,12 @@ function scheduleRelevantRows(project, date){
   // need shots actually matched to a specific date.
   return getShootDates(project).length <= 1 ? shotStep.shotListRows : shotStep.shotListRows.filter(r => r.day === date);
 }
-function scheduleSceneGroups(project, date){
+function scheduleSceneGroups(project, date, day){
   const map = {};
   scheduleRelevantRows(project, date).forEach(r => {
     const key = r.scene || '(No scene set)';
-    if(!map[key]) map[key] = { count:0, cameras: new Set(), firstOrder: Infinity, seq: Object.keys(map).length };
-    map[key].count++;
+    if(!map[key]) map[key] = { count:0, rows:[], cameras: new Set(), firstOrder: Infinity, seq: Object.keys(map).length };
+    map[key].rows.push(r);
     // scenes run in shooting order: a scene sits where its earliest-ordered shot sits
     const ord = parseFloat(r.order);
     if(!isNaN(ord) && ord < map[key].firstOrder) map[key].firstOrder = ord;
@@ -7375,75 +7550,269 @@ function scheduleSceneGroups(project, date){
     // "A&B" (or shots split across both cameras) means both shooters are covering it
     (r.camera || '').split(/[,&/]|\band\b/i).map(c => c.trim().toUpperCase()).filter(Boolean).forEach(c => map[key].cameras.add(c));
   });
-  return Object.entries(map)
+  Object.values(map).forEach(g => { g.count = sceneShotSlots(g.rows).count; });
+  const ordered = Object.entries(map)
     .sort((a, b) => (a[1].firstOrder - b[1].firstOrder) || (a[1].seq - b[1].seq) || 0)
     .map(([scene,data]) => ({
     scene, count: data.count,
     shooter: data.cameras.size > 1 ? 'Both' : (data.cameras.size === 1 ? [...data.cameras][0] : ''),
   }));
+  // a hand-set running order for the day (Move earlier / later in the schedule) wins over the shot list's
+  const pref = (day && day.sceneOrder) || [];
+  if(!pref.length) return ordered;
+  const listed = pref.map(n => ordered.find(g => g.scene === n)).filter(Boolean);
+  return listed.concat(ordered.filter(g => !pref.includes(g.scene)));
 }
-// lays the scenes (plus lunch and any set up changes between scenes) across the shooting window —
-// from the end of debrief to the start of pack down. A scene with its own minutes keeps them; the
-// remaining time is shared out between the other scenes by shot count.
+// lays the day out between the end of debrief and the start of pack down.
+//  - scenes run in shooting order; when the two shooters split the scenes (A-only / B-only) they work
+//    at the same time, side by side, and a scene with both cameras is a sync point both wait for
+//  - lunch and any fixed time with a length are blocks that never move; scenes share the time between
+//    them (a fixed time with no length is just a marker)
+//  - a scene with its own minutes keeps them; the rest of the time is shared by shot count
+//  - everything lands on the 5-minute grid
+// returns { items, timeline, units, parallel, overMin, tooShort } — `items` is the flat list (scenes,
+// set up changes, blocks) with minutes; `timeline` is the same day in clock order for display.
 function allocateScenes(day, groups){
+  const parallel = isParallelDay(day, groups);
   const changes = day.setupChanges || {};
   const sceneMins = day.sceneMinutes || {};
-  const customOf = g => { const n = parseFloat(sceneMins[g.scene]); return n > 0 ? n : null; };
-  const changeAfter = (g, idx) => (idx < groups.length - 1 && changes[g.scene] !== undefined) ? schedNum(changes[g.scene], 0) : null;
-  const t = dayTimings(day);
-  if(!t || t.shootEnd === null || !groups.length){
-    const items = [];
-    groups.forEach((g, idx) => {
-      items.push({ ...g, isLast: idx === groups.length - 1, range:null, startMin:null, endMin:null, minutes: customOf(g), perShotMin:null, custom: !!customOf(g) });
-      const ch = changeAfter(g, idx);
-      if(ch !== null) items.push({ isChange:true, scene:g.scene, minutes:ch, range:null });
+  const customOf = g => { const n = dur5(sceneMins[g.scene]); return n > 0 ? n : null; };
+  const idxOf = new Map(groups.map((g, i) => [g, i]));
+  const laneOf = g => { const s = effShooter(day, g); return (s === 'A' || s === 'B') ? s : ''; };
+  const inLane = (g, L) => !parallel || !laneOf(g) || laneOf(g) === L;
+  const hasNext = g => {
+    const i = idxOf.get(g);
+    if(!parallel) return i < groups.length - 1;
+    const lanes = laneOf(g) ? [laneOf(g)] : ['A', 'B'];
+    return groups.slice(i + 1).some(h => lanes.some(L => inLane(h, L)));
+  };
+  const changeAfter = g => (changes[g.scene] !== undefined && hasNext(g)) ? dur5(changes[g.scene]) : null;
+
+  // units: a sync scene, a run of A and B scenes at the same time, or (not parallel) one scene
+  const units = [];
+  if(!parallel){
+    groups.forEach(g => units.push({ type:'serial', lanes:{ ALL:[g] } }));
+  } else {
+    let stage = null;
+    const flush = () => { if(stage){ units.push(stage); stage = null; } };
+    groups.forEach(g => {
+      const L = laneOf(g);
+      if(L){ if(!stage) stage = { type:'par', lanes:{ A:[], B:[] } }; stage.lanes[L].push(g); }
+      else { flush(); units.push({ type:'sync', lanes:{ ALL:[g] } }); }
     });
-    return { items, overMin:0, tooShort:false };
+    flush();
   }
-  const hasLunch = !!(day.lunch && day.lunchStart);
-  const lunchDur = hasLunch ? schedNum(day.lunchMinutes, 60) : 0;
-  let lunchStartMin = hasLunch ? schedToMin(day.lunchStart) : null;
-  if(hasLunch && lunchStartMin < t.arrive) lunchStartMin += 24*60;
-  const windowMin = t.shootEnd - t.shootStart;
-  const changeTotal = groups.reduce((s, g, idx) => s + (changeAfter(g, idx) || 0), 0);
-  const available = Math.max(0, windowMin - lunchDur - changeTotal);
-  const fixed = groups.reduce((s, g) => s + (customOf(g) || 0), 0);
-  const flex = groups.filter(g => !customOf(g));
-  const flexShots = flex.reduce((s, g) => s + g.count, 0) || 1;
-  const flexMin = Math.max(0, available - fixed);
-  const flexMins = {};
-  let assigned = 0;
-  flex.forEach((g, k) => {
-    const raw = (k === flex.length - 1) ? flexMin - assigned : flexMin * (g.count / flexShots);
-    const mins = Math.max(1, Math.round(raw));
-    flexMins[g.scene] = mins;
-    assigned += mins;
+  const laneTag = (unit, key) => unit.type === 'serial' ? 'ALL' : unit.type === 'sync' ? 'AB' : key;
+  const t = dayTimings(day);
+
+  const mkScene = (unit, key, g) => ({
+    ...g, shooter: effShooter(day, g), lane: laneTag(unit, key), custom: !!customOf(g),
+    canChange: hasNext(g), isLast: !hasNext(g), minutes: customOf(g), startMin:null, endMin:null, range:null, perShotMin:null,
   });
-  const clk = (a, b) => `${minutesToClock(a)} – ${minutesToClock(b)}`;
-  let cursor = t.shootStart;
-  let lunchInserted = !hasLunch;
+
+  // no arrive/leave yet: nothing to place, but the scenes (and any changes) still list
+  if(!t || t.shootEnd === null || !groups.length){
+    const items = [], timeline = [];
+    units.forEach(u => {
+      const unitItems = {};
+      Object.keys(u.lanes).forEach(key => {
+        unitItems[key] = [];
+        u.lanes[key].forEach(g => {
+          const sc = mkScene(u, key, g); unitItems[key].push(sc); items.push(sc);
+          const ch = changeAfter(g);
+          if(ch !== null){ const c = { isChange:true, scene:g.scene, minutes:ch, lane: sc.lane, range:null }; unitItems[key].push(c); items.push(c); }
+        });
+      });
+      timeline.push({ kind:'unit', unit:u, lanes: unitItems, startMin:null, endMin:null });
+    });
+    return { items, timeline, units, parallel, overMin:0, tooShort:false };
+  }
+
+  const T = 5;
+  const tk = m => Math.round(m / T);
+  const ws = tk(t.shootStart), we = tk(t.shootEnd);
+  const clk = (a, b) => `${minutesToClock(a * T)} – ${minutesToClock(b * T)}`;
+
+  // blocks (lunch, fixed times with a length) and markers (fixed times without one)
+  let blocks = [], points = [];
+  const place = (hhmm) => { let m = r5(schedToMin(hhmm)); if(m < t.arrive) m += 24*60; return tk(m); };
+  if(day.lunch && day.lunchStart){
+    const d = dur5(day.lunchMinutes === undefined || day.lunchMinutes === '' ? 60 : day.lunchMinutes);
+    if(d > 0) blocks.push({ kind:'lunch', label:'Lunch break', s: place(day.lunchStart), d: tk(d) });
+  }
+  (day.times || []).forEach(x => {
+    if(!x.time) return;
+    const d = fixedTimeMinutes(x);
+    if(d > 0) blocks.push({ kind:'block', id:x.id, label:x.label || 'Fixed time', s: place(x.time), d: tk(d) });
+    else points.push({ id:x.id, label:x.label || 'Fixed time', at: place(x.time) });
+  });
+  blocks.forEach(b => { b.e = b.s + b.d; });
+  blocks = blocks.filter(b => b.e > ws && b.s < we).sort((a, b) => a.s - b.s);
+  let cur = ws;
+  blocks.forEach(b => { if(b.s < cur) b.s = cur; if(b.s < ws) b.s = ws; if(b.e > we) b.e = we; if(b.e < b.s) b.e = b.s; cur = Math.max(cur, b.e); });
+  blocks = blocks.filter(b => b.e > b.s);
+  const segs = [];
+  // blocks hold time free; a fixed time with no length is a wall — scenes before it stop there and
+  // scenes after it start there (nothing runs across it)
+  const cuts = blocks.map(b => ({ s:b.s, e:b.e, kind:'block' }))
+    .concat(points.filter(p => p.at > ws && p.at < we).map(p => ({ s:p.at, e:p.at, kind:'point', id:p.id })))
+    .sort((a, b) => (a.s - b.s) || (a.kind === 'point' ? -1 : 1));
+  cur = ws;
+  let prevKind = null;
+  cuts.forEach(c => {
+    if(c.s > cur){ segs.push({ s:cur, e:c.s, units:[], before:prevKind, after:c.kind, afterId:c.id }); prevKind = c.kind; cur = Math.max(cur, c.e); }
+    else if(c.kind === 'block'){ prevKind = 'block'; cur = Math.max(cur, c.e); }
+  });
+  if(cur < we) segs.push({ s:cur, e:we, units:[], before:prevKind, after:null });
+  const workTicks = segs.reduce((s, x) => s + (x.e - x.s), 0);
+
+  // each unit's own numbers: time that is already decided (custom minutes + changes), the shot
+  // weight that competes for the rest, and the least it can be squeezed to
+  const info = units.map(u => {
+    const lanes = Object.keys(u.lanes).map(key => {
+      const list = u.lanes[key];
+      let fixed = 0, w = 0, nFlex = 0;
+      list.forEach(g => {
+        const c = customOf(g);
+        if(c) fixed += tk(c); else { w += g.count; nFlex++; }
+        const ch = changeAfter(g); if(ch !== null) fixed += tk(ch);
+      });
+      return { key, list, fixed, w, nFlex };
+    });
+    const base = Math.max(0, ...lanes.map(l => l.fixed));
+    const W = Math.max(0, ...lanes.map(l => l.w));
+    const minD = Math.max(0, ...lanes.map(l => l.fixed + l.nFlex));
+    return { u, lanes, base, W, minD };
+  });
+  const totalBase = info.reduce((s, x) => s + x.base, 0);
+  const totalW = info.reduce((s, x) => s + x.W, 0);
+  const pool = Math.max(0, workTicks - totalBase);
+  // which stretch of time (between blocks) each unit falls in, by where its middle would land
+  // which stretch of time (between the fixed blocks) each unit falls in: units stay in order, and
+  // the split is the one where each stretch's units come closest to filling it
+  const raws = info.map(x => x.base + (totalW ? pool * x.W / totalW : 0));
+  const pre = [0]; raws.forEach(r => pre.push(pre[pre.length - 1] + r));
+  const nU = info.length, nS = segs.length;
+  const counts = segs.map(() => 0);
+  // where a scene has been put before or after a fixed-time wall by hand (the running order carries
+  // the walls too), the units on each side of that wall are fixed
+  const order = day.sceneOrder || [];
+  const unitPos = info.map(x => Math.min(...Object.values(x.u.lanes).flat().map(g => { const p = order.indexOf(g.scene); return p < 0 ? Infinity : p; })));
+  const needBefore = {};
+  segs.forEach(sg => {
+    if(!sg.afterId) return;
+    const tp = order.indexOf('@' + sg.afterId);
+    if(tp >= 0) needBefore[sg.afterId] = unitPos.filter(p => p < tp).length;
+  });
+  const tryDp = (useWalls) => {
+    const INF = Infinity;
+    const dp = Array.from({ length: nS + 1 }, () => new Array(nU + 1).fill(INF));
+    const from = Array.from({ length: nS + 1 }, () => new Array(nU + 1).fill(0));
+    dp[0][0] = 0;
+    for(let k = 1; k <= nS; k++){
+      const len = segs[k - 1].e - segs[k - 1].s;
+      const wallId = segs[k - 1].afterId;
+      for(let i = 0; i <= nU; i++){
+        if(useWalls && wallId && needBefore[wallId] !== undefined && i !== needBefore[wallId]) continue;
+        for(let j = 0; j <= i; j++){
+          if(dp[k - 1][j] === INF) continue;
+          const c = dp[k - 1][j] + Math.pow(pre[i] - pre[j] - len, 2) * (i === j ? 4 : 1); // leaving a stretch empty costs extra
+          if(c < dp[k][i]){ dp[k][i] = c; from[k][i] = j; }
+        }
+      }
+    }
+    if(dp[nS][nU] === INF) return false;
+    let i = nU;
+    for(let k = nS; k >= 1; k--){ const j = from[k][i]; counts[k - 1] = i - j; i = j; }
+    return true;
+  };
+  if(nS && !tryDp(true)) tryDp(false);
+  { let at = 0; segs.forEach((sg, k) => { sg.units = info.slice(at, at + counts[k]); at += counts[k]; }); }
+
+  let overTicks = 0;
+  const entries = []; // timeline entries, unsorted
+  // a stretch of time left with no scenes of its own is worked through by the scene before it (or,
+  // at the start, the one after) — that scene simply runs on past the block in between
+  // no stretch of the day is ever left empty: a stretch with no scene of its own is worked through by
+  // the scene before it (or, at the start of the day, the one after it)
+  let squeezed = false;
+  const groups2 = [];
+  let carry = [];
+  segs.forEach(seg => {
+    if(seg.units.length){ groups2.push({ pieces: carry.concat([seg]), units: seg.units }); carry = []; }
+    else if(groups2.length) groups2[groups2.length - 1].pieces.push(seg);
+    else carry.push(seg);
+  });
+  groups2.forEach(grp => {
+    const len = grp.pieces.reduce((n, p) => n + (p.e - p.s), 0);
+    const segUnits = grp.units;
+    // work-time offset within this group → clock tick (skipping over the blocks between its pieces)
+    const at = (off, isEnd) => {
+      let rem = off;
+      for(let q = 0; q < grp.pieces.length; q++){
+        const p = grp.pieces[q], l = p.e - p.s;
+        if(rem < l || (isEnd && rem === l) || q === grp.pieces.length - 1) return p.s + rem;
+        rem -= l;
+      }
+      return grp.pieces[0].s;
+    };
+    const rng = (a1, b1) => clk(at(a1, false), at(b1, true));
+    const mins = segUnits.map(x => Math.max(x.minD, x.base) - x.base);
+    const weights = segUnits.map(x => x.W);
+    const baseSum = segUnits.reduce((s, x) => s + x.base, 0);
+    const wSum = weights.reduce((s, x) => s + x, 0);
+    // scenes before lunch or a fixed-time wall stop there: when their set lengths add up to more than
+    // the time there is, the set lengths are scaled down to fit instead of running over
+    const hardEnd = grp.pieces[grp.pieces.length - 1].after;
+    const fit = (hardEnd && baseSum > len) ? len / baseSum : 1;
+    if(fit < 1) squeezed = true;
+    const sq = v => fit < 1 ? Math.max(1, Math.floor(v * fit)) : v;
+    const laneFixedS = l => l.list.reduce((n, g) => n + (customOf(g) ? sq(tk(customOf(g))) : 0) + (changeAfter(g) !== null ? sq(tk(changeAfter(g))) : 0), 0);
+    const flexTotal = wSum ? len - baseSum : mins.reduce((s, x) => s + x, 0);
+    const flex = splitTicks(Math.max(flexTotal, mins.reduce((s, x) => s + x, 0)), weights.map(w => w || 0), mins);
+    let cursor = 0;
+    segUnits.forEach((x, k) => {
+      const D = fit < 1 ? Math.max(1, ...x.lanes.map(l => laneFixedS(l) + l.nFlex)) : (x.base + (wSum ? flex[k] : 0) || x.minD);
+      const unit = x.u;
+      const unitStart = cursor, unitEnd = cursor + D;
+      const laneItems = {};
+      x.lanes.forEach(l => {
+        laneItems[l.key] = [];
+        const flexList = l.list.filter(g => !customOf(g));
+        const avail = Math.max(D - (fit < 1 ? laneFixedS(l) : l.fixed), flexList.length);
+        const alloc = splitTicks(avail, flexList.map(g => g.count), flexList.map(() => 1));
+        let c = unitStart, fi = 0;
+        l.list.forEach(g => {
+          const cu = customOf(g);
+          const dT = cu ? sq(tk(cu)) : alloc[fi++];
+          const sc = mkScene(unit, l.key, g);
+          sc.minutes = dT * T; sc.startMin = at(c, false) * T; sc.endMin = at(c + dT, true) * T; sc.range = rng(c, c + dT);
+          sc.perShotMin = Math.round(sc.minutes / g.count); if(cu && fit < 1) sc.shortened = true;
+          laneItems[l.key].push(sc);
+          c += dT;
+          const ch = changeAfter(g);
+          if(ch !== null){
+            const cT = sq(tk(ch));
+            laneItems[l.key].push({ isChange:true, scene:g.scene, minutes:cT * T, lane: sc.lane, startMin:at(c, false) * T, endMin:at(c + cT, true) * T, range: rng(c, c + cT) });
+            c += cT;
+          }
+        });
+      });
+      entries.push({ kind:'unit', unit, lanes: laneItems, startMin: at(unitStart, false) * T, endMin: at(unitEnd, true) * T, sortAt: at(unitStart, false) });
+      cursor = unitEnd;
+    });
+    if(cursor > len) overTicks += cursor - len;
+  });
+  blocks.forEach(b => entries.push({ kind:'block', block:b, label:b.label, isLunch:b.kind === 'lunch', startMin:b.s * T, endMin:b.e * T, range: clk(b.s, b.e), minutes:(b.e - b.s) * T, id:b.id, sortAt:b.s, order:0 }));
+  points.forEach(p => entries.push({ kind:'point', label:p.label, id:p.id, startMin:p.at * T, endMin:p.at * T, range: minutesToClock(p.at * T), sortAt:p.at, order:-1 }));
+  entries.sort((a, b) => (a.sortAt - b.sortAt) || ((a.order || 0) - (b.order || 0)));
+
   const items = [];
-  groups.forEach((g, idx) => {
-    if(!lunchInserted && cursor >= lunchStartMin){
-      items.push({ isLunch:true, minutes:lunchDur, startMin:cursor, endMin:cursor+lunchDur, range: clk(cursor, cursor+lunchDur) });
-      cursor += lunchDur;
-      lunchInserted = true;
-    }
-    const mins = customOf(g) || flexMins[g.scene];
-    const st = cursor;
-    cursor += mins;
-    items.push({ ...g, isLast: idx === groups.length - 1, custom: !!customOf(g), minutes: mins, startMin: st, endMin: cursor, range: clk(st, cursor), perShotMin: Math.round(mins / g.count) });
-    const ch = changeAfter(g, idx);
-    if(ch !== null){
-      items.push({ isChange:true, scene:g.scene, minutes:ch, startMin:cursor, endMin:cursor+ch, range: clk(cursor, cursor+ch) });
-      cursor += ch;
-    }
+  entries.forEach(en => {
+    if(en.kind === 'unit') Object.keys(en.lanes).forEach(key => en.lanes[key].forEach(it => items.push(it)));
+    else if(en.kind === 'block') items.push({ isBlock:true, isLunch: en.isLunch, label:en.label, id:en.id, minutes:en.minutes, startMin:en.startMin, endMin:en.endMin, range:en.range });
   });
-  if(!lunchInserted){
-    items.push({ isLunch:true, minutes:lunchDur, startMin:cursor, endMin:cursor+lunchDur, range: clk(cursor, cursor+lunchDur) });
-    cursor += lunchDur;
-  }
-  return { items, overMin: Math.max(0, Math.round(cursor - t.shootEnd)), tooShort: windowMin <= 0 };
+  return { items, timeline: entries, units, parallel, overMin: overTicks * T, squeezed, tooShort: we <= ws };
 }
 
 function openScheduleModal(project, step, sideRight){
@@ -7453,11 +7822,15 @@ function openScheduleModal(project, step, sideRight){
   const savedByDate = {};
   (step.scheduleDays || []).forEach(d => { if(d.date){ migrateScheduleDay(d); savedByDate[d.date] = d; } });
   const days = shootDates.length
-    ? shootDates.map(d => Object.assign({ date:d, start:'', end:'', driveMinutes:'', uber:false, lunch:false, lunchStart:'', lunchMinutes:'60', others:[], setupMinutes:'45', debriefMinutes:'15', packMinutes:'', sceneMinutes:{}, setupChanges:{}, v2:true }, savedByDate[d] || {}))
+    ? shootDates.map(d => Object.assign({ date:d, start:'', end:'', driveMinutes:'', uber:false, lunch:false, lunchStart:'', lunchMinutes:'60', others:[], times:[], crewTimes:{}, sceneShooter:{}, sceneOrder:[], setupMinutes:'45', debriefMinutes:'15', packMinutes:'', sceneMinutes:{}, setupChanges:{}, v2:true }, savedByDate[d] || {}))
     : (step.scheduleDays && step.scheduleDays.length ? JSON.parse(JSON.stringify(step.scheduleDays)) : []);
   days.forEach(d => {
     migrateScheduleDay(d);
     if(!d.others) d.others = [];
+    if(!d.times) d.times = [];
+    if(!d.crewTimes) d.crewTimes = {};
+    if(!d.sceneShooter) d.sceneShooter = {};
+    if(!d.sceneOrder) d.sceneOrder = [];
     if(d.setupMinutes === undefined) d.setupMinutes = '45';
     if(d.debriefMinutes === undefined) d.debriefMinutes = '15';
     if(d.packMinutes === undefined) d.packMinutes = '';
@@ -7487,7 +7860,7 @@ function openScheduleModal(project, step, sideRight){
   function morningSchedule(day){
     const t = dayTimings(day);
     if(!t) return null;
-    const driveMin = (parseFloat(day.driveMinutes) || 0) + (day.uber ? 15 : 0);
+    const driveMin = r5((parseFloat(day.driveMinutes) || 0) + (day.uber ? 15 : 0));
     const c = minutesToClock;
     return {
       leaveStudio: c(t.arrive - driveMin),
@@ -7520,7 +7893,7 @@ function openScheduleModal(project, step, sideRight){
       <div class="sched-item"><div class="sched-item-scene">Leave location</div><div class="sched-item-meta">${esc(morning.end.leaveClock)}</div></div>`;
   }
 
-  const sceneGroups = (date) => scheduleSceneGroups(project, date);
+  const sceneGroups = (date) => scheduleSceneGroups(project, date, days.find(d => d.date === date));
   const sceneKey = (i, scene) => i + '::' + encodeURIComponent(scene);
   function parseSceneKey(key){
     const sep = key.indexOf('::');
@@ -7530,24 +7903,29 @@ function openScheduleModal(project, step, sideRight){
   function suggestedMinutes(day, groups, scene){
     const clone = Object.assign({}, day, { sceneMinutes: Object.assign({}, day.sceneMinutes) });
     delete clone.sceneMinutes[scene];
-    const hit = allocateScenes(clone, groups).items.find(x => !x.isLunch && !x.isChange && x.scene === scene);
+    const hit = allocateScenes(clone, groups).items.find(x => !x.isLunch && !x.isBlock && !x.isChange && x.scene === scene);
     return hit && hit.minutes !== null ? hit.minutes : null;
   }
-  // A/B/Both timeline for one shooter — every scene block (in order) that shooter covers, with any
-  // set up change that came right before it
-  function shooterTimeline(items, letter){
-    const result = [];
-    let pendingChange = null;
-    items.forEach(g => {
-      if(g.isLunch){ pendingChange = null; return; }
-      if(g.isChange){ pendingChange = g; return; }
-      if(g.shooter === letter || g.shooter === 'Both'){
-        if(pendingChange) result.push(pendingChange);
-        result.push(g);
-      }
-      pendingChange = null;
+  // A/B timeline for one shooter — their own scenes (and set up changes), the scenes both cameras
+  // share, plus lunch and fixed times, in clock order
+  function shooterTimeline(timeline, letter){
+    const out = [];
+    timeline.forEach(en => {
+      if(en.kind === 'free') return;
+      if(en.kind === 'block' || en.kind === 'point'){ out.push(en.kind === 'block' ? { isBlock:true, scene:en.label, range:en.range } : { isBlock:true, scene:en.label, range:en.range }); return; }
+      Object.keys(en.lanes).forEach(key => en.lanes[key].forEach(g => {
+        if(g.isChange){ if(g.lane === 'ALL' ? true : (g.lane === letter || g.lane === 'AB')) out.push(g); return; }
+        if(g.lane === letter || g.lane === 'AB' || (g.lane === 'ALL' && (g.shooter === letter || g.shooter === 'Both'))) out.push(g);
+      }));
     });
-    return result;
+    // a change in the serial lane belongs to whoever shot the scene before it
+    return out.filter((g, k) => !(g.isChange && g.lane === 'ALL' && !out.slice(0, k).some(p => !p.isChange && !p.isBlock && p.scene === g.scene)));
+  }
+  function shooterRowHtml(day, g){
+    if(g.isChange) return `<div class="sched-item sched-drive"><div class="sched-item-scene">Set up change</div><div class="sched-item-meta">${g.range ? esc(g.range) : g.minutes + ' min'}</div></div>`;
+    if(g.isBlock) return `<div class="sched-item sched-fixed"><div class="sched-item-scene">${esc(g.scene)}</div><div class="sched-item-meta">${esc(g.range)}</div></div>`;
+    const loc = scheduleSceneLocation(project, day.date, g.scene);
+    return `<div class="sched-item"><div class="sched-item-scene">${esc(g.scene)}${loc ? `<div class="sched-loc">${esc(loc)}</div>` : ''}</div><div class="sched-item-meta">${g.range ? esc(g.range) : ''}</div></div>`;
   }
 
   function dayHtml(day, i){
@@ -7558,7 +7936,7 @@ function openScheduleModal(project, step, sideRight){
     const dayLabel = shootDates.length ? `Day ${i+1}` : `Shoot day`;
     const dateLabel = day.date ? fmtDate(day.date) : 'No date set';
     const t = dayTimings(day);
-    const autoPack = Math.round(schedNum(day.setupMinutes, 45) * 0.75);
+    const autoPack = r5(schedNum(day.setupMinutes, 45) * 0.75);
     const packShown = (day.packMinutes !== undefined && day.packMinutes !== '') ? day.packMinutes : String(autoPack);
     return `
         <div class="sched-day-head"><span class="loc-day">${esc(dayLabel)}</span><span class="loc-date">${esc(dateLabel)}</span></div>
@@ -7589,60 +7967,140 @@ function openScheduleModal(project, step, sideRight){
         ${day.lunch ? `
         <div class="budget-op-fields" style="margin-top:8px;">
           <div class="budget-op-field"><label>Lunch start</label>${timeFieldHtml('schedtime-lunchstart-' + i, day.lunchStart)}</div>
-          <div class="budget-op-field"><label>Duration (mins)</label><input type="number" inputmode="numeric" data-schedfield="lunchMinutes" data-idx="${i}" value="${esc(day.lunchMinutes||'60')}"></div>
+          <div class="budget-op-field"><label>Duration (mins)</label><input type="number" inputmode="numeric" step="5" data-schedfield="lunchMinutes" data-idx="${i}" value="${esc(day.lunchMinutes||'60')}"></div>
         </div>
-        ` : ''}`;
+        ` : ''}
+        ${fixedTimesHtml(day, i)}
+        ${parallelHtml(day, i)}`;
   }
 
-  // one scene: tap it to change how long it takes (the other scenes then share what's left)
+  // "Add time": a fixed point in the day (a talent call, golden hour, a booked slot). Give it a
+  // length and it becomes a block the scenes work around, like lunch; leave the length empty and it's
+  // a marker on the timeline.
+  function fixedTimesHtml(day, i){
+    return `
+        <div class="loc-label" style="margin-top:12px;">Fixed times</div>
+        ${(day.times || []).map((x, k) => `
+          <div class="sched-fixed-row">
+            <input type="text" class="sl-input" data-fxfield="label" data-idx="${i}" data-k="${k}" value="${esc(x.label || '')}" placeholder="e.g. Golden hour">
+            <button type="button" class="mo-btn" data-fxremove="${k}" data-idx="${i}" aria-label="Remove time">&times;</button>
+            <div class="budget-op-field"><label>Start</label>${timeFieldHtml('schedtime-fx-' + i + '-' + k, x.time)}</div>
+            <div class="budget-op-field"><label>End</label>${timeFieldHtml('schedtime-fxend-' + i + '-' + k, x.end)}</div>
+          </div>`).join('')}
+        <button type="button" class="btn small" data-addtime="${i}" style="width:100%; margin-top:6px;">+ Add time</button>
+        ${(day.times || []).length ? `<div class="timeline-hint" style="margin:4px 0 0;">With an end time, that stretch is held free and scenes work around it. Without one, it's just a marker.</div>` : ''}`;
+  }
+  // two cameras: shoot at the same time in different places (A and B lanes), or one after another
+  function parallelHtml(day, i){
+    const groups = sceneGroups(day.date);
+    const has = groups.some(g => ['A','B'].includes(effShooter(day, g)));
+    if(!has) return '';
+    const val = day.parallel === true ? 'yes' : day.parallel === false ? 'no' : 'auto';
+    const now = isParallelDay(day, groups);
+    return `
+        <div class="loc-label" style="margin-top:12px;">Cameras A and B</div>
+        <select class="sl-input" data-parallel="${i}" style="width:100%;">
+          <option value="auto" ${val==='auto'?'selected':''}>Automatic (${now ? 'at the same time' : 'one after another'})</option>
+          <option value="yes" ${val==='yes'?'selected':''}>Shoot at the same time, in different places</option>
+          <option value="no" ${val==='no'?'selected':''}>One after another</option>
+        </select>
+        <div class="timeline-hint" style="margin:4px 0 0;">Set a scene to "Both cameras" to bring A and B back together — the timeline syncs there.</div>`;
+  }
+
+  // one scene: tap it to edit its start / end, length and camera (the other scenes then share what's left)
   function sceneRowHtml(day, i, g, groups, showPerShot){
     const key = sceneKey(i, g.scene);
     const open = editingScene === key;
     const suggested = open ? suggestedMinutes(day, groups, g.scene) : null;
+    const loc = scheduleSceneLocation(project, day.date, g.scene);
+    const hasTimes = g.startMin !== null && g.startMin !== undefined;
+    const sh = (day.sceneShooter || {})[g.scene] || '';
     return `
       <div class="sched-item-wrap">
-        <div class="sched-item sched-clickable${open ? ' sched-open' : ''}" data-editscene="${esc(key)}" title="Tap to change how long this scene takes">
-          <div class="sched-item-scene">${esc(g.scene)}${g.shooter ? ` <span class="sched-shooter-badge">Cam ${esc(g.shooter)}</span>` : ''}</div>
-          <div class="sched-item-meta">${g.count} shot${g.count===1?'':'s'}${g.range ? ' · ' + esc(g.range) : ''}${g.custom ? ' · edited' : ''}</div>
+        <div class="sched-item sched-clickable${open ? ' sched-open' : ''}" data-editscene="${esc(key)}" title="Tap to edit this period">
+          <div class="sched-item-scene">${esc(g.scene)}${g.shooter ? ` <span class="sched-shooter-badge">${g.shooter === 'Both' ? 'Both cameras' : 'Cam ' + esc(g.shooter)}</span>` : ''}${loc ? `<div class="sched-loc">${esc(loc)}</div>` : ''}</div>
+          <div class="sched-item-meta">${g.count} shot${g.count===1?'':'s'}${g.range ? '<br>' + esc(g.range) : ''}${g.shortened ? ' · shortened' : g.custom ? ' · edited' : ''}</div>
         </div>
         ${showPerShot && g.perShotMin !== null && !open ? `<div class="sched-info-box">≈ ${g.perShotMin} min per shot (${g.minutes} min split across ${g.count} shot${g.count===1?'':'s'})</div>` : ''}
         ${open ? `
         <div class="sched-edit-box">
-          <label class="loc-label" style="margin-top:0;">Time for this scene (mins)</label>
+          ${hasTimes ? `
+          <div class="budget-op-fields">
+            <div class="budget-op-field"><label>Starts</label>${timeFieldHtml('schedtime-sstart-' + key, minutesToHHMM(g.startMin))}</div>
+            <div class="budget-op-field"><label>Ends</label>${timeFieldHtml('schedtime-send-' + key, minutesToHHMM(g.endMin))}</div>
+          </div>` : ''}
+          <label class="loc-label">Length (mins)</label>
           <div style="display:flex; gap:8px; align-items:center;">
-            <input type="number" inputmode="numeric" min="1" data-scenemin="${esc(key)}" value="${g.custom ? esc(String(g.minutes)) : ''}" placeholder="${suggested !== null ? suggested : ''}" style="flex:1;">
+            <input type="number" inputmode="numeric" min="5" step="5" data-scenemin="${esc(key)}" value="${g.custom ? esc(String((day.sceneMinutes || {})[g.scene] ?? g.minutes)) : ''}" placeholder="${suggested !== null ? suggested : ''}" style="flex:1;">
             ${g.custom ? `<button type="button" class="btn small" data-scenereset="${esc(key)}">Use suggested</button>` : ''}
           </div>
-          <div class="timeline-hint" style="margin:4px 0 0;">${suggested !== null ? `Suggested: ${suggested} min. ` : 'Set arrive and leave times to see a suggestion. '}The other scenes adjust to fit.</div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button type="button" class="btn small" data-movescene="${esc(key)}" data-dir="-1" style="flex:1;">▲ Move earlier</button>
+            <button type="button" class="btn small" data-movescene="${esc(key)}" data-dir="1" style="flex:1;">▼ Move later</button>
+          </div>
+          <label class="loc-label">Camera</label>
+          <select class="sl-input" data-shooter="${esc(key)}" style="width:100%;">
+            <option value="" ${!sh?'selected':''}>From the shot list${!sh && g.shooter ? ' (' + (g.shooter === 'Both' ? 'both' : g.shooter) + ')' : ''}</option>
+            <option value="A" ${sh==='A'?'selected':''}>Camera A</option>
+            <option value="B" ${sh==='B'?'selected':''}>Camera B</option>
+            <option value="Both" ${sh==='Both'?'selected':''}>Both cameras (sync point)</option>
+          </select>
+          <div class="timeline-hint" style="margin:6px 0 0;">${suggested !== null ? `Suggested: ${suggested} min. ` : 'Set arrive and leave times to see a suggestion. '}Changing the start moves the end of the period before it. Times sit on 5-minute steps.</div>
         </div>` : ''}
       </div>`;
   }
 
-  // scenes in order, with lunch, and a set up change (or an "add" button) between each pair of scenes
-  function scheduleListHtml(day, i, alloc, groups, showPerShot){
-    return alloc.items.map(g => {
-      if(g.isLunch) return `
-        <div class="sched-item-wrap">
-          <div class="sched-item sched-lunch"><div class="sched-item-scene">Lunch break</div><div class="sched-item-meta">${esc(g.range)}</div></div>
-        </div>`;
-      const key = sceneKey(i, g.scene);
-      if(g.isChange) return `
+  function changeRowHtml(day, i, g){
+    const key = sceneKey(i, g.scene);
+    return `
         <div class="sched-item-wrap">
           <div class="sched-item sched-drive"><div class="sched-item-scene">Set up change</div><div class="sched-item-meta">${g.range ? esc(g.range) : ''}</div></div>
           <div style="display:flex; gap:8px; align-items:flex-end; margin:6px 0;">
-            <div style="flex:1;"><label class="loc-label" style="margin-top:0;">How long (mins)</label><input type="number" inputmode="numeric" min="0" data-changemin="${esc(key)}" value="${esc(String((day.setupChanges || {})[g.scene] ?? ''))}" placeholder="15"></div>
+            <div style="flex:1;"><label class="loc-label" style="margin-top:0;">How long (mins)</label><input type="number" inputmode="numeric" min="0" step="5" data-changemin="${esc(key)}" value="${esc(String((day.setupChanges || {})[g.scene] ?? ''))}" placeholder="15"></div>
             <button type="button" class="btn small danger" data-removechange="${esc(key)}">Remove</button>
           </div>
         </div>`;
+  }
+  function laneRowsHtml(day, i, list, groups, showPerShot){
+    if(!list.length) return `<div class="timeline-hint" style="margin:6px 0;">Nothing scheduled</div>`;
+    return list.map(g => {
+      if(g.isChange) return changeRowHtml(day, i, g);
+      const key = sceneKey(i, g.scene);
       const hasChange = (day.setupChanges || {})[g.scene] !== undefined;
       return sceneRowHtml(day, i, g, groups, showPerShot)
-        + (!g.isLast && !hasChange ? `<button type="button" class="btn small ghost" data-addchange="${esc(key)}" style="width:100%; margin:6px 0;">+ Add setup change</button>` : '');
+        + (g.canChange && !hasChange ? `<button type="button" class="btn small ghost" data-addchange="${esc(key)}" style="width:100%; margin:6px 0;">+ Add setup change</button>` : '');
+    }).join('');
+  }
+
+  // the day in clock order: scenes, lunch, fixed times — and where A and B shoot at once, two lanes
+  // side by side that meet again at the next sync scene
+  function scheduleListHtml(day, i, alloc, groups, showPerShot){
+    return alloc.timeline.map(en => {
+      if(en.kind === 'block') return `
+        <div class="sched-item-wrap">
+          <div class="sched-item ${en.isLunch ? 'sched-lunch' : 'sched-fixed'}"><div class="sched-item-scene">${esc(en.label)}</div><div class="sched-item-meta">${esc(en.range)}</div></div>
+        </div>`;
+      if(en.kind === 'free') return `
+        <div class="sched-item-wrap">
+          <div class="sched-item"><div class="sched-item-scene" style="color:var(--text-dim);">Free time</div><div class="sched-item-meta">${esc(en.range)}</div></div>
+        </div>`;
+      if(en.kind === 'point') return `
+        <div class="sched-item-wrap">
+          <div class="sched-item sched-fixed"><div class="sched-item-scene">${esc(en.label)}</div><div class="sched-item-meta">${esc(en.range)}</div></div>
+        </div>`;
+      if(en.unit.type === 'par'){
+        const head = en.startMin !== null && en.startMin !== undefined ? `<div class="timeline-hint" style="margin:6px 0 4px;">A and B at the same time · ${esc(minutesToClock(en.startMin))} – ${esc(minutesToClock(en.endMin))}</div>` : '';
+        return head + `<div class="sched-par">${['A','B'].map(L => `
+          <div class="sched-lane"><div class="sched-lane-head">Camera ${L}</div>${laneRowsHtml(day, i, en.lanes[L] || [], groups, showPerShot)}</div>`).join('')}</div>`;
+      }
+      return Object.keys(en.lanes).map(key => laneRowsHtml(day, i, en.lanes[key], groups, showPerShot)).join('');
     }).join('');
   }
 
   function scheduleHintsHtml(day, alloc){
     if(!day.start || !day.end) return `<div class="timeline-hint" style="margin-top:8px;">Set arrive and leave times to allocate time to each scene.</div>`;
     if(alloc.tooShort) return `<div class="timeline-hint" style="margin-top:8px; color:var(--out);">Pack down starts before shooting does — leave later, or shorten set up, debrief or pack down.</div>`;
+    if(alloc.squeezed) return `<div class="timeline-hint" style="margin-top:8px; color:var(--out);">The scenes before lunch or a fixed time add up to more than the time there is, so their set lengths were shortened to stop there — shorten a scene, move the fixed time later, or move a scene after it.</div>`;
     if(alloc.overMin > 0) return `<div class="timeline-hint" style="margin-top:8px; color:var(--out);">Scenes run ${alloc.overMin} min past the start of pack down — shorten a scene or leave later.</div>`;
     return '';
   }
@@ -7666,18 +8124,19 @@ function openScheduleModal(project, step, sideRight){
         ` : `<div class="timeline-hint" style="margin-top:8px;">Set an arrival time to work out the morning schedule from the studio.</div>`}
         ${groups.length ? `
           <div class="loc-label" style="margin-top:12px;">Scenes for this day</div>
-          <div class="sched-bar">${alloc.items.map(g => `<span class="sched-seg${g.isLunch?' sched-seg-lunch':''}${g.isChange?' sched-seg-drive':''}" style="flex-grow:${Math.max(1, g.minutes !== null && g.minutes !== undefined ? g.minutes : (g.count || 1))};" title="${g.isLunch ? 'Lunch' : g.isChange ? 'Set up change' : esc(g.scene)}"></span>`).join('')}</div>
+          <div class="sched-bar">${alloc.timeline.filter(en => en.kind !== 'point').map(en => {
+            const len = (en.startMin !== null && en.startMin !== undefined) ? Math.max(1, en.endMin - en.startMin) : (en.kind === 'unit' ? Math.max(1, ...Object.values(en.lanes).map(l => l.reduce((a, g) => a + (g.count || 1), 0))) : 1);
+            const nm = (en.kind === 'block' || en.kind === 'free') ? en.label : en.unit.type === 'par' ? 'Cameras A and B' : (Object.values(en.lanes)[0][0] || {}).scene;
+            return `<span class="sched-seg${en.kind === 'block' ? (en.isLunch ? ' sched-seg-lunch' : ' sched-seg-drive') : en.kind === 'free' ? ' sched-seg-drive' : ''}" style="flex-grow:${len};" title="${esc(nm || '')}"></span>`;
+          }).join('')}</div>
           <div class="sched-list">${scheduleListHtml(day, i, alloc, groups, true)}</div>
           ${scheduleHintsHtml(day, alloc)}
           ${['A','B'].map(letter => {
-            const tl = shooterTimeline(alloc.items, letter);
-            return tl.length ? `
+            const tl = shooterTimeline(alloc.timeline, letter);
+            return tl.some(g => !g.isBlock && !g.isChange) ? `
               <div class="loc-label" style="margin-top:14px;">Shooter ${letter} timeline</div>
               <div class="sched-list">
-                ${tl.map(g => g.isChange
-                  ? `<div class="sched-item sched-drive"><div class="sched-item-scene">Set up change</div><div class="sched-item-meta">${g.minutes} min</div></div>`
-                  : `<div class="sched-item"><div class="sched-item-scene">${esc(g.scene)}</div><div class="sched-item-meta">${g.range ? esc(g.range) : ''}</div></div>`
-                ).join('')}
+                ${tl.map(g => shooterRowHtml(day, g)).join('')}
               </div>` : '';
           }).join('')}
         ` : `
@@ -7708,16 +8167,13 @@ function openScheduleModal(project, step, sideRight){
           <div class="sched-list">${scheduleListHtml(day, i, alloc, groups, false)}</div>
           ${scheduleHintsHtml(day, alloc)}
           ${['A','B'].map(letter => {
-            const tl = shooterTimeline(alloc.items, letter);
-            if(!tl.length) return '';
+            const tl = shooterTimeline(alloc.timeline, letter);
+            if(!tl.some(g => !g.isBlock && !g.isChange)) return '';
             return `
               <div class="loc-label" style="margin-top:14px;">Shooter ${letter} timeline</div>
               <div class="sched-list">
                 ${morning ? morningItemsHtml(morning) : `<div class="timeline-hint">Set an arrival time to work out the morning schedule from the studio.</div>`}
-                ${tl.map(g => g.isChange
-                  ? `<div class="sched-item sched-drive"><div class="sched-item-scene">Set up change</div><div class="sched-item-meta">${g.minutes} min</div></div>`
-                  : `<div class="sched-item"><div class="sched-item-scene">${esc(g.scene)}</div><div class="sched-item-meta">${g.range ? esc(g.range) : ''}</div></div>`
-                ).join('')}
+                ${tl.map(g => shooterRowHtml(day, g)).join('')}
                 ${endItemsHtml(morning)}
               </div>`;
           }).join('')}
@@ -7728,16 +8184,43 @@ function openScheduleModal(project, step, sideRight){
       </div>`;
   }
 
+  // who's on set, with when and where each person will be there
+  function dayLocations(day){
+    const list = [];
+    const add = a => { a = (a || '').trim(); if(a && !list.includes(a)) list.push(a); };
+    const locStep = (project.steps || []).find(isLocationStep);
+    const row = locStep && (locStep.locationRows || []).find(r => r.date === day.date);
+    ((row && row.entries) || []).forEach(en => add(en.address));
+    scheduleRelevantRows(project, day.date).forEach(r => add(r.location));
+    return list;
+  }
   function dayCastCrewHtml(i, onSet, others){
-    const crewNames = onSet.map(o => o.role);
+    const day = days[i];
+    const locs = dayLocations(day);
+    const dl = `schedlocs-${i}`;
+    const whenWhere = (kind, ref, v) => `
+      <div class="sched-when">
+        ${timeFieldHtml('schedtime-' + kind + '-' + i + '-' + ref, (v && v.time) || '')}
+        ${timeFieldHtml('schedtime-' + kind + 'end-' + i + '-' + ref, (v && v.end) || '')}
+        <input type="text" class="sl-input" list="${dl}" data-${kind}loc="${esc(String(ref))}" data-idx="${i}" value="${esc((v && v.location) || '')}" placeholder="Where on set">
+      </div>`;
     return `
       <div class="loc-label" style="margin-top:10px;">Who's on set</div>
+      <datalist id="${dl}">${locs.map(l => `<option value="${esc(l)}"></option>`).join('')}</datalist>
       <div class="sched-cc-block">
-        <div class="sched-cc-line"><b>Crew:</b> ${crewNames.length ? crewNames.map(esc).join(', ') : 'No operators from Budget assigned to this date yet.'}</div>
+        ${onSet.length ? '' : `<div class="sched-cc-line"><b>Crew:</b> No operators from Budget assigned to this date yet.</div>`}
+        ${onSet.map((o, ci) => `
+          <div class="sched-person">
+            <div class="sched-cc-line"><b>${esc(o.role)}</b></div>
+            ${whenWhere('crew', ci, (day.crewTimes || {})[o.role])}
+          </div>`).join('')}
         ${(others || []).map((o, oi) => `
-          <div class="sched-other-row">
-            <input type="text" class="sl-input" data-otherfield="${oi}" data-idx="${i}" value="${esc(o.text||'')}" placeholder="e.g. Dave — lead actor" style="width:100%;">
-            <button type="button" class="mo-btn" data-removeother="${oi}" data-idx="${i}" aria-label="Remove person">&times;</button>
+          <div class="sched-person">
+            <div class="sched-other-row">
+              <input type="text" class="sl-input" data-otherfield="${oi}" data-idx="${i}" value="${esc(o.text||'')}" placeholder="e.g. Dave — lead actor" style="width:100%;">
+              <button type="button" class="mo-btn" data-removeother="${oi}" data-idx="${i}" aria-label="Remove person">&times;</button>
+            </div>
+            ${whenWhere('oth', oi, o)}
           </div>
         `).join('')}
         <button type="button" class="btn small" data-addother="${i}" style="width:100%;">+ Add cast / other person</button>
@@ -7752,7 +8235,7 @@ function openScheduleModal(project, step, sideRight){
         <h3>Shooting schedule of day</h3>
         ${days.length ? days.map(dayHtml).join('') : `<p class="empty small">Add shoot days in Edit details to build a schedule.</p>`}
         <div class="modal-actions">
-          ${days.length ? `<button class="btn ghost" id="schedPdf" style="flex:1;">Export PDF</button>` : ''}
+          ${days.length ? `<button class="btn ghost" id="schedPdf" style="flex:1;">Export call sheet</button>` : ''}
           <button class="btn primary" id="schedSave" style="flex:1;">Close</button>
         </div>
       </div>`;
@@ -7761,21 +8244,55 @@ function openScheduleModal(project, step, sideRight){
     wire();
   }
 
-  // every edit in this panel saves immediately — no separate Save step to remember
-  // client-ready PDF of the whole schedule: one section per shoot day, a clean time-by-time table.
-  // Internal bits (leaving the studio, driving) are left out; everything else matches the panel.
-  function exportSchedulePdf(){
+  // the call sheet: twolastnames logo + wordmark, then for each shoot day the locations (with
+  // addresses), who's needed when and where, and the time-by-time schedule. Internal bits (leaving
+  // the studio, driving) are left out.
+  async function exportSchedulePdf(){
     if(typeof window.jspdf === 'undefined'){ showToast("Couldn't load the PDF writer — check your connection and try again", true); return; }
     const { jsPDF } = window.jspdf;
+    // the wordmark is drawn in Inter (the tracker's font) on a canvas, since the PDF only carries Helvetica
+    let wordmark = null;
+    try {
+      if(document.fonts && document.fonts.load) await document.fonts.load('700 60px Inter', 'twolastnames');
+      const c = document.createElement('canvas');
+      const ctx = c.getContext('2d');
+      const font = '700 120px Inter, "Helvetica Neue", Arial, sans-serif';
+      ctx.font = font;
+      const w = Math.ceil(ctx.measureText('twolastnames').width) + 16;
+      c.width = w; c.height = 94; // tight to the letters (no descenders), so the text can match the logo's height
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.fillStyle = '#111'; ctx.font = font; ctx.textBaseline = 'alphabetic';
+      ctx.fillText('twolastnames', 8, 90);
+      wordmark = { url: c.toDataURL('image/jpeg', 0.95), ratio: c.width / c.height };
+    } catch(e){ wordmark = null; }
+
     const doc = new jsPDF({ unit:'pt', format:'a4' });
     const PW = doc.internal.pageSize.getWidth(), PH = doc.internal.pageSize.getHeight();
-    const M = 44, timeW = 130;
+    const M = 44;
     let y = M, first = true, drewAny = false;
-    const need = h => { if(y + h > PH - M){ doc.addPage(); y = M; } };
-    const text = (str, x, size, style, color) => {
+    const need = h => { if(y + h > PH - M){ doc.addPage(); y = M; return true; } return false; };
+    const text = (str, x, size, style, color, opts) => {
       doc.setFont('helvetica', style || 'normal'); doc.setFontSize(size); doc.setTextColor(color === undefined ? 17 : color);
-      doc.text(str, x, y);
+      doc.text(String(str), x, y, opts);
     };
+    function drawLogo(x, top, h){
+      const sc = h / 748, ox = x - 226 * sc, oy = top - 226 * sc;
+      doc.setDrawColor(17); doc.setLineWidth(25 * sc);
+      doc.circle(ox + 599.5 * sc, oy + 599.5 * sc, 349.5 * sc, 'S');
+      doc.circle(ox + 712 * sc, oy + 486 * sc, 165 * sc, 'S');
+      doc.line(ox + 250 * sc, oy + 905 * sc, ox + 1110 * sc, oy + 515 * sc);
+      doc.setLineWidth(0.5);
+    }
+    function header(){
+      const lh = 14;
+      drawLogo(M, y, lh);
+      const lw = lh * 900 / 748;
+      if(wordmark){ const wh = lh * 0.88; doc.addImage(wordmark.url, 'JPEG', M + lw + 8, y + (lh - wh) / 2, wh * wordmark.ratio, wh); }
+      else { y += 14; text('twolastnames', M + lw + 8, 12, 'bold'); y -= 14; }
+      y += 9; text('CALL SHEET', PW - M, 9, 'bold', 110, { align:'right' }); y -= 9;
+      y += lh + 10;
+      doc.setDrawColor(190); doc.line(M, y, PW - M, y); y += 24;
+    }
 
     days.forEach((day, i) => {
       const t = dayTimings(day);
@@ -7786,51 +8303,70 @@ function openScheduleModal(project, step, sideRight){
       const alloc = allocateScenes(day, groups);
       const m = morningSchedule(day);
       const dayLabel = shootDates.length > 1 ? `Day ${i + 1} — ` : '';
+      header();
 
-      text(project.name, M, 20, 'bold'); y += 18;
-      text(`Shooting schedule · ${dayLabel}${day.date ? fmtDate(day.date) : ''}`, M, 11, 'normal', 100); y += 10;
-      doc.setDrawColor(190); doc.line(M, y, PW - M, y); y += 20;
+      text(project.name, M, 20, 'bold'); y += 16;
+      text(`${dayLabel}${day.date ? fmtDate(day.date) : ''}`, M, 11, 'normal', 100); y += 22;
 
-      // chronological rows: [time, title, detail]
-      const rows = [];
-      rows.push([m.arriveLocation, 'Arrive at location', '']);
-      rows.push([m.setupRange, 'Equipment set up', '']);
-      rows.push([m.debriefRange, 'Debrief', '']);
-      rows.push([m.startClock, 'Start shooting', '']);
-      alloc.items.forEach(g => {
-        if(g.isLunch) rows.push([g.range, 'Lunch break', '']);
-        else if(g.isChange) rows.push([g.range, 'Set up change', `${g.minutes} min`]);
-        else {
-          const bits = [`${g.count} shot${g.count === 1 ? '' : 's'}`];
-          if(g.shooter) bits.push(g.shooter === 'Both' ? 'Cameras A & B' : `Camera ${g.shooter}`);
-          rows.push([g.range || '', (g.scene === '(No scene set)' ? g.scene : `Scene ${g.scene}`), bits.join(' · ')]);
-        }
-      });
-      rows.push([m.end.wrapClock, 'Shooting ends', '']);
-      rows.push([m.end.packRange, 'Pack down', '']);
-      rows.push([m.end.leaveClock, 'Leave location', '']);
-
-      rows.forEach(([time, title, detail], k) => {
-        const rowH = 26;
-        need(rowH);
-        if(k % 2 === 0){ doc.setFillColor(246, 246, 246); doc.rect(M - 6, y - 15, PW - 2 * M + 12, rowH, 'F'); }
-        text(time, M, 10.5, 'normal', 90);
-        text(title, M + timeW, 11, 'bold');
-        if(detail){ doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(110); doc.text(detail, PW - M, y, { align:'right' }); }
-        y += rowH;
-      });
-      y += 10;
-
-      const crew = operatorsForDay(day.date).map(o => o.role);
-      const others = (day.others || []).map(o => (o.text || '').trim()).filter(Boolean);
-      if(crew.length || others.length){
-        need(60);
-        y += 6; text("Who's on set", M, 12, 'bold'); y += 16;
-        const lines = [];
-        if(crew.length) lines.push('Crew: ' + crew.join(', '));
-        others.forEach(o => lines.push(o));
-        lines.forEach(l => doc.splitTextToSize(l, PW - 2 * M).forEach(part => { need(16); text(part, M, 10.5, 'normal', 60); y += 15; }));
+      // locations with addresses
+      const locs = dayLocations(day);
+      if(locs.length){
+        text(locs.length > 1 ? 'LOCATIONS' : 'LOCATION', M, 8.5, 'bold', 120); y += 14;
+        locs.forEach(l => doc.splitTextToSize(l, PW - 2 * M).forEach(part => { need(15); text(part, M, 11, 'normal', 17); y += 15; }));
+        y += 8;
       }
+
+      // who and when
+      const crew = operatorsForDay(day.date).map(o => {
+        const v = (day.crewTimes || {})[o.role] || {};
+        return [o.role, `${v.time ? formatClockValue(v.time) : m.arriveLocation} – ${v.end ? formatClockValue(v.end) : (m.end ? m.end.leaveClock : '')}`, v.location || locs[0] || ''];
+      });
+      const others = (day.others || []).filter(o => (o.text || '').trim()).map(o => [o.text.trim(), o.time || o.end ? `${o.time ? formatClockValue(o.time) : ''} – ${o.end ? formatClockValue(o.end) : ''}` : '', o.location || '']);
+      const people = crew.concat(others);
+      const cols = [M, M + 215, M + 345];
+      const colW = [205, 125, PW - M - (M + 345)];
+      const table = (head, rows, widths, xs, rowPad) => {
+        need(30);
+        doc.setFillColor(238, 238, 238); doc.rect(M - 6, y - 12, PW - 2 * M + 12, 20, 'F');
+        head.forEach((h, k) => text(h, xs[k], 8.5, 'bold', 90)); y += 17;
+        rows.forEach((r, k) => {
+          const parts = r.map((c, ci) => doc.splitTextToSize(String(c || ''), widths[ci]));
+          const lines = Math.max(1, ...parts.map(p => p.length));
+          const h = lines * 13 + rowPad;
+          need(h);
+          if(k % 2 === 1){ doc.setFillColor(248, 248, 248); doc.rect(M - 6, y - 11, PW - 2 * M + 12, h, 'F'); }
+          parts.forEach((p, ci) => p.forEach((ln, li) => { y += li * 13; text(ln, xs[ci], 10, ci === 1 ? 'bold' : 'normal', 30); y -= li * 13; }));
+          y += h;
+        });
+      };
+      if(people.length){
+        text('WHO IS NEEDED, WHEN AND WHERE', M, 8.5, 'bold', 120); y += 14;
+        table(['NAME', 'ON SET (FROM – TO)', 'WHERE'], people, colW, cols, 8);
+        y += 14;
+      }
+
+      // chronological schedule
+      const rows = [];
+      rows.push([m.arriveLocation, 'Arrive at location', '', '']);
+      rows.push([m.setupRange, 'Equipment set up', '', '']);
+      rows.push([m.debriefRange, 'Debrief', '', '']);
+      rows.push([m.startClock, 'Start shooting', '', '']);
+      const camTxt = g => g.shooter === 'Both' ? 'A & B' : (g.shooter ? g.shooter : '');
+      alloc.timeline.forEach(en => {
+        if(en.kind === 'block' || en.kind === 'point' || en.kind === 'free'){ rows.push([en.range, en.label, '', '']); return; }
+        const its = [];
+        Object.keys(en.lanes).forEach(key => en.lanes[key].forEach(g => its.push(g)));
+        its.sort((a, b) => ((a.startMin || 0) - (b.startMin || 0)) || ((a.lane === 'B') - (b.lane === 'B')));
+        its.forEach(g => {
+          if(g.isChange) rows.push([g.range || '', 'Set up change', '', (en.unit.type === 'par' ? g.lane : '')]);
+          else rows.push([g.range || '', (g.scene === '(No scene set)' || /^scene\b/i.test(g.scene) ? g.scene : `Scene ${g.scene}`) + ` · ${g.count} shot${g.count === 1 ? '' : 's'}`, scheduleSceneLocation(project, day.date, g.scene), camTxt(g)]);
+        });
+      });
+      rows.push([m.end.wrapClock, 'Shooting ends', '', '']);
+      rows.push([m.end.packRange, 'Pack down', '', '']);
+      rows.push([m.end.leaveClock, 'Leave location', '', '']);
+      text('SCHEDULE', M, 8.5, 'bold', 120); y += 14;
+      table(['TIME', 'WHAT', 'WHERE', 'CAMERA'], rows, [115, 190, 110, 48], [M, M + 120, M + 316, PW - M - 48], 8);
     });
 
     if(!drewAny){ showToast('Set arrive and leave times first — there is no schedule to export yet', true); return; }
@@ -7838,10 +8374,116 @@ function openScheduleModal(project, step, sideRight){
     for(let p = 1; p <= total; p++){
       doc.setPage(p);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(150);
-      doc.text(`${project.name} · page ${p} of ${total}`, M, PH - 22);
+      doc.text(`twolastnames · ${project.name} · page ${p} of ${total}`, M, PH - 22);
     }
-    doc.save(`${(project.name || 'project').replace(/[^a-z0-9]+/gi, '-')}-shooting-schedule.pdf`);
-    showToast('Schedule PDF downloaded');
+    doc.save(`${(project.name || 'project').replace(/[^a-z0-9]+/gi, '-')}-call-sheet.pdf`);
+    showToast('Call sheet downloaded');
+  }
+
+  // the day's running order: scenes plus the fixed-time walls ('@id'), so a scene can be moved to
+  // either side of a wall. Walls that aren't in the saved order yet are placed where they fall now.
+  function fullOrder(day){
+    const groups = sceneGroups(day.date);
+    const al = allocateScenes(day, groups);
+    const startOf = n => { const it = al.items.find(x => !x.isLunch && !x.isBlock && !x.isChange && x.scene === n); return it && it.startMin !== null ? it.startMin : null; };
+    const walls = (day.times || []).filter(x => x.time && fixedTimeMinutes(x) === 0).map(x => '@' + x.id);
+    const sceneNames = groups.map(g => g.scene);
+    const out = (day.sceneOrder || []).filter(n => sceneNames.includes(n) || walls.includes(n));
+    sceneNames.forEach(n => { if(!out.includes(n)) out.push(n); });
+    const t = dayTimings(day);
+    walls.filter(w => !out.includes(w)).forEach(w => {
+      const x = day.times.find(q => '@' + q.id === w);
+      let m = r5(schedToMin(x.time)); if(t && m < t.arrive) m += 24*60;
+      let at = out.findIndex(n => !n.startsWith('@') && startOf(n) !== null && startOf(n) >= m);
+      if(at < 0) at = out.length;
+      out.splice(at, 0, w);
+    });
+    return out;
+  }
+  // changes where a scene sits in the day's running order (the shot list itself is untouched); it can
+  // step across a fixed-time wall
+  function moveScene(day, scene, dir){
+    const names = fullOrder(day);
+    const at = names.indexOf(scene), to = at + dir;
+    if(at < 0 || to < 0 || to >= names.length) return;
+    names.splice(at, 1); names.splice(to, 0, scene);
+    day.sceneOrder = names;
+  }
+  // a period's End sets its own length; its Start moves the end of whatever came before it. The other
+  // scenes share what's left, so the day is re-laid a few times until the time asked for is the time shown.
+  function editPeriodTime(which, { dayIdx, scene }, newMin){
+    const day = days[dayIdx];
+    const lay = () => allocateScenes(day, sceneGroups(day.date));
+    const find = al => al.items.find(x => !x.isLunch && !x.isBlock && !x.isChange && x.scene === scene);
+    let alloc = lay(), item = find(alloc);
+    if(!item || item.startMin === null) return;
+    const tt = dayTimings(day);
+    const wraps = tt && tt.shootEnd > 24*60;
+    if(which === 'send'){
+      if(newMin < item.startMin && wraps) newMin += 24*60;
+      if(newMin - item.startMin < 5){ showToast('The end needs to be after the start', true); return; }
+      let L = item.minutes;
+      for(let k = 0; k < 8; k++){
+        const diff = newMin - item.endMin;
+        if(!diff) break;
+        L = Math.max(5, L + diff);
+        day.sceneMinutes[scene] = String(L);
+        item = find(lay());
+      }
+      return;
+    }
+    if(newMin < item.startMin - 12*60 && wraps) newMin += 24*60;
+    if(newMin === item.startMin) return;
+    // what sits directly before this period
+    let pred = null, found = false;
+    const tl = alloc.timeline;
+    for(let ei = 0; ei < tl.length && !found; ei++){
+      const en = tl[ei];
+      if(en.kind !== 'unit') continue;
+      for(const key of Object.keys(en.lanes)){
+        const list = en.lanes[key];
+        const pos = list.findIndex(it => !it.isChange && !it.isBlock && it.scene === scene);
+        if(pos < 0) continue;
+        found = true;
+        if(pos > 0) pred = list[pos - 1];
+        else {
+          // a fixed-time marker doesn't take up time, so look past it to what really comes before
+          let pi = ei - 1;
+          while(pi >= 0 && tl[pi].kind === 'point') pi--;
+          const prev = pi >= 0 ? tl[pi] : null;
+          if(!prev) pred = { debrief:true };
+          else if(prev.kind === 'unit'){
+            const lasts = Object.values(prev.lanes).map(l => l[l.length - 1]).filter(Boolean);
+            pred = lasts.sort((a, b) => (b.endMin || 0) - (a.endMin || 0))[0] || null;
+          }
+        }
+        break;
+      }
+    }
+    if(!pred){ showToast("Edit the start or length of the lunch or fixed time instead", true); return; }
+    if(pred.debrief){ day.debriefMinutes = String(Math.max(0, r5(schedNum(day.debriefMinutes, 15) + newMin - item.startMin))); return; }
+    const isChg = !!pred.isChange;
+    let L = pred.minutes;
+    const lo = isChg ? 0 : 5;
+    if(L + (newMin - item.startMin) < lo){
+      // earlier than the scenes before it can allow — so move this scene up the running order instead,
+      // to just ahead of the first scene that starts after the time asked for
+      const names = fullOrder(day).filter(n => n !== scene);
+      const nextIdx = names.findIndex(n => { const it = alloc.items.find(x => !x.isLunch && !x.isBlock && !x.isChange && x.scene === n); return it && it.startMin >= newMin; });
+      names.splice(nextIdx < 0 ? names.length : nextIdx, 0, scene);
+      day.sceneOrder = names;
+      showToast(nextIdx < 0 ? 'Moved to the end of the day' : `Moved ahead of ${names[nextIdx + 1].replace(/^@.*/, 'the next scene')}`);
+      return;
+    }
+    for(let k = 0; k < 8; k++){
+      const diff = newMin - item.startMin;
+      if(!diff) break;
+      const next = Math.max(lo, L + diff);
+      if(next === L){ showToast("That's earlier than the period before can finish", true); break; }
+      L = next;
+      if(isChg) day.setupChanges[pred.scene] = String(L); else day.sceneMinutes[pred.scene] = String(L);
+      item = find(lay());
+    }
   }
 
   async function persistSchedule(){
@@ -7894,7 +8536,7 @@ function openScheduleModal(project, step, sideRight){
         const idx = parseInt(el.dataset.idx,10);
         const field = el.dataset.schedfield;
         const day = days[idx];
-        day[field] = el.type === 'checkbox' ? el.checked : el.value;
+        day[field] = el.type === 'checkbox' ? el.checked : (['setupMinutes','debriefMinutes','packMinutes','lunchMinutes'].includes(field) && el.value !== '' ? String(r5(schedNum(el.value, 0))) : el.value);
         if(field === 'lunch' && el.checked){
           // default: an hour, positioned at the midpoint of the shoot day
           if(!day.lunchStart && day.start && day.end){
@@ -7902,7 +8544,7 @@ function openScheduleModal(project, step, sideRight){
             const [eh,em] = day.end.split(':').map(Number);
             let total = (eh*60+em) - (sh*60+sm);
             if(total <= 0) total += 24*60;
-            day.lunchStart = minutesToHHMM((sh*60+sm) + Math.round(total/2));
+            day.lunchStart = minutesToHHMM(r5((sh*60+sm) + total/2));
           }
           if(!day.lunchMinutes) day.lunchMinutes = '60';
         }
@@ -7912,10 +8554,30 @@ function openScheduleModal(project, step, sideRight){
     });
     bg.querySelectorAll('[data-timefield^="schedtime-"]').forEach(el => {
       el.addEventListener('change', () => {
-        const hidden = document.getElementById(el.dataset.timefield);
-        const m = el.dataset.timefield.match(/^schedtime-(start|end|lunchstart)-(\d+)$/);
-        const fieldMap = { start:'start', end:'end', lunchstart:'lunchStart' };
-        if(m) days[parseInt(m[2],10)][fieldMap[m[1]]] = hidden.value;
+        const id = el.dataset.timefield;
+        const val = document.getElementById(id).value;
+        let m;
+        if((m = id.match(/^schedtime-(start|end|lunchstart)-(\d+)$/))){
+          days[parseInt(m[2],10)][{ start:'start', end:'end', lunchstart:'lunchStart' }[m[1]]] = val ? minutesToHHMM(r5(schedToMin(val))) : '';
+        } else if((m = id.match(/^schedtime-fx-(\d+)-(\d+)$/))){
+          days[parseInt(m[1],10)].times[parseInt(m[2],10)].time = val ? minutesToHHMM(r5(schedToMin(val))) : '';
+        } else if((m = id.match(/^schedtime-fxend-(\d+)-(\d+)$/))){
+          days[parseInt(m[1],10)].times[parseInt(m[2],10)].end = val ? minutesToHHMM(r5(schedToMin(val))) : '';
+        } else if((m = id.match(/^schedtime-othend-(\d+)-(\d+)$/))){
+          days[parseInt(m[1],10)].others[parseInt(m[2],10)].end = val ? minutesToHHMM(r5(schedToMin(val))) : '';
+        } else if((m = id.match(/^schedtime-crewend-(\d+)-(\d+)$/))){
+          const d = days[parseInt(m[1],10)];
+          const role = operatorsForDay(d.date)[parseInt(m[2],10)].role;
+          d.crewTimes[role] = Object.assign(d.crewTimes[role] || {}, { end: val ? minutesToHHMM(r5(schedToMin(val))) : '' });
+        } else if((m = id.match(/^schedtime-oth-(\d+)-(\d+)$/))){
+          days[parseInt(m[1],10)].others[parseInt(m[2],10)].time = val ? minutesToHHMM(r5(schedToMin(val))) : '';
+        } else if((m = id.match(/^schedtime-crew-(\d+)-(\d+)$/))){
+          const d = days[parseInt(m[1],10)];
+          const role = operatorsForDay(d.date)[parseInt(m[2],10)].role;
+          d.crewTimes[role] = Object.assign(d.crewTimes[role] || {}, { time: val ? minutesToHHMM(r5(schedToMin(val))) : '' });
+        } else if((m = id.match(/^schedtime-(sstart|send)-(.+)$/)) && val){
+          editPeriodTime(m[1], parseSceneKey(m[2]), r5(schedToMin(val)));
+        }
         paint();
         persistSchedule();
       });
@@ -7936,7 +8598,7 @@ function openScheduleModal(project, step, sideRight){
         livePaint(`[data-scenemin="${el.dataset.scenemin.replace(/"/g, '\\"')}"]`);
       });
       el.addEventListener('change', () => {
-        const n = parseFloat(el.value);
+        const n = dur5(el.value);
         if(n > 0) days[dayIdx].sceneMinutes[scene] = String(n);
         else delete days[dayIdx].sceneMinutes[scene];
         paint();
@@ -7968,7 +8630,7 @@ function openScheduleModal(project, step, sideRight){
         days[dayIdx].setupChanges[scene] = el.value;
         livePaint(`[data-changemin="${el.dataset.changemin.replace(/"/g, '\\"')}"]`);
       });
-      el.addEventListener('change', () => { persistSchedule(); });
+      el.addEventListener('change', () => { days[dayIdx].setupChanges[scene] = String(r5(schedNum(el.value, 0))); paint(); persistSchedule(); });
     });
     bg.querySelectorAll('[data-removechange]').forEach(el => {
       el.addEventListener('click', () => {
@@ -7988,6 +8650,50 @@ function openScheduleModal(project, step, sideRight){
         const ok = await saveProjects();
         showToast(ok ? 'All shots assigned to this day' : 'Save failed', !ok);
         if(ok) paint();
+      });
+    });
+    // fixed times ("Add time")
+    bg.querySelectorAll('[data-addtime]').forEach(btn => btn.addEventListener('click', () => {
+      days[parseInt(btn.dataset.addtime,10)].times.push({ id: uid(), label:'', time:'', minutes:'' });
+      paint(); persistSchedule();
+    }));
+    bg.querySelectorAll('[data-fxremove]').forEach(btn => btn.addEventListener('click', () => {
+      days[parseInt(btn.dataset.idx,10)].times.splice(parseInt(btn.dataset.fxremove,10), 1);
+      paint(); persistSchedule();
+    }));
+    bg.querySelectorAll('[data-fxfield]').forEach(el => {
+      const x = () => days[parseInt(el.dataset.idx,10)].times[parseInt(el.dataset.k,10)];
+      el.addEventListener('input', () => { x()[el.dataset.fxfield] = el.value; });
+      el.addEventListener('change', () => {
+        if(el.dataset.fxfield === 'minutes') x().minutes = el.value === '' ? '' : String(dur5(el.value));
+        paint(); persistSchedule();
+      });
+    });
+    bg.querySelectorAll('[data-parallel]').forEach(el => el.addEventListener('change', () => {
+      const d = days[parseInt(el.dataset.parallel,10)];
+      if(el.value === 'yes') d.parallel = true; else if(el.value === 'no') d.parallel = false; else delete d.parallel;
+      paint(); persistSchedule();
+    }));
+    bg.querySelectorAll('[data-movescene]').forEach(btn => btn.addEventListener('click', () => {
+      const { dayIdx, scene } = parseSceneKey(btn.dataset.movescene);
+      moveScene(days[dayIdx], scene, parseInt(btn.dataset.dir, 10));
+      paint(); persistSchedule();
+    }));
+    bg.querySelectorAll('[data-shooter]').forEach(el => el.addEventListener('change', () => {
+      const { dayIdx, scene } = parseSceneKey(el.dataset.shooter);
+      if(el.value) days[dayIdx].sceneShooter[scene] = el.value; else delete days[dayIdx].sceneShooter[scene];
+      paint(); persistSchedule();
+    }));
+    // people: where they'll be
+    bg.querySelectorAll('[data-crewloc], [data-othloc]').forEach(el => {
+      const isCrew = el.dataset.crewloc !== undefined;
+      const idx = parseInt(el.dataset.idx,10);
+      el.addEventListener('change', () => {
+        if(isCrew){
+          const role = operatorsForDay(days[idx].date)[parseInt(el.dataset.crewloc,10)].role;
+          days[idx].crewTimes[role] = Object.assign(days[idx].crewTimes[role] || {}, { location: el.value });
+        } else days[idx].others[parseInt(el.dataset.othloc,10)].location = el.value;
+        persistSchedule();
       });
     });
     const pdfBtn = bg.querySelector('#schedPdf');
@@ -8917,6 +9623,7 @@ function gearRenderHeader(){
   return `
     <div class="topbar">
       <div class="wordmark">
+        ${TLN_LOGO_SVG}
         <div><h1>twolastnames gear log</h1><span>equipment tracker</span></div>
       </div>
       <div class="counts"><b class="in">${studioCount} at studio</b><br><b class="pre">${rentalCount} rental</b><br><b class="out">${projectCount} project</b></div>
