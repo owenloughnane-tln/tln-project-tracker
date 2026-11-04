@@ -7772,15 +7772,20 @@ function allocateScenes(day, groups){
   const entries = []; // timeline entries, unsorted
   // a stretch of time left with no scenes of its own is worked through by the scene before it (or,
   // at the start, the one after) — that scene simply runs on past the block in between
-  // no stretch of the day is ever left empty: a stretch with no scene of its own is worked through by
-  // the scene before it (or, at the start of the day, the one after it)
-  let squeezed = false;
+  // a stretch with no scene of its own is worked through by the scene before it when only lunch (or another
+  // held block) separates them; a fixed-time wall is never crossed, so a stretch the wall cuts off is left
   const groups2 = [];
   let carry = [];
-  segs.forEach(seg => {
-    if(seg.units.length){ groups2.push({ pieces: carry.concat([seg]), units: seg.units }); carry = []; }
-    else if(groups2.length) groups2[groups2.length - 1].pieces.push(seg);
-    else carry.push(seg);
+  let squeezed = false;
+  segs.forEach((seg, k) => {
+    if(seg.units.length){
+      if(carry.length && !(carry[carry.length - 1] === segs[k - 1] && carry[carry.length - 1].after === 'block')) carry = [];
+      groups2.push({ pieces: carry.concat([seg]), units: seg.units, last: seg }); carry = [];
+    } else {
+      const lastG = groups2[groups2.length - 1];
+      if(lastG && lastG.last === segs[k - 1] && seg.before === 'block'){ lastG.pieces.push(seg); lastG.last = seg; }
+      else if(seg.after === 'block' && k < segs.length - 1 && (!carry.length || carry[carry.length - 1] === segs[k - 1])) carry.push(seg);
+    }
   });
   groups2.forEach(grp => {
     const len = grp.pieces.reduce((n, p) => n + (p.e - p.s), 0);
@@ -7939,7 +7944,8 @@ function openScheduleModal(project, step, sideRight){
       },
     };
   }
-  function morningItemsHtml(morning){
+  let openMorning = null; // which set up / debrief row has its swap button showing
+  function morningItemsHtml(morning, di){
     return `
       <div class="sched-item"><div class="sched-item-scene">Leave studio</div><div class="sched-item-meta">${esc(morning.leaveStudio)}</div></div>
       ${morning.driveMin > 0 ? `<div class="sched-item sched-drive"><div class="sched-item-scene">Driving</div><div class="sched-item-meta">${morning.driveMin} min</div></div>` : ''}
@@ -7947,7 +7953,7 @@ function openScheduleModal(project, step, sideRight){
       ${(() => {
         const prep = (morning.debriefFirst ? ['debrief', 'setup'] : ['setup', 'debrief']).map((w, wi) => ({
           min: w === 'setup' ? morning.setupStartMin : morning.debriefStartMin, tie: 0,
-          html: `<div class="sched-item"><div class="sched-item-scene">${w === 'setup' ? 'Equipment set up' : 'Debrief'}</div><div class="sched-item-meta"><button type="button" class="mo-btn" data-swapmorning="1" title="${wi === 0 ? 'Do this second instead' : 'Do this first instead'}" style="margin-right:8px;">${wi === 0 ? '▼' : '▲'}</button>${esc(w === 'setup' ? morning.setupRange : morning.debriefRange)}</div></div>` }));
+          html: `<div class="sched-item-wrap"><div class="sched-item sched-clickable${openMorning === di + ':' + w ? ' sched-open' : ''}" data-editmorning="${di}:${w}" title="Tap to change the order"><div class="sched-item-scene">${w === 'setup' ? 'Equipment set up' : 'Debrief'}</div><div class="sched-item-meta">${esc(w === 'setup' ? morning.setupRange : morning.debriefRange)}</div></div>${openMorning === di + ':' + w ? `<div class="sched-edit-box"><button type="button" class="btn small" data-swapmorning="${di}" style="width:100%;">${wi === 0 ? '▼ Do this second instead' : '▲ Do this first instead'}</button></div>` : ''}</div>` }));
         const starts = morning.startRows.map(r => ({ min: r.min, tie: 1, html: `<div class="sched-item"><div class="sched-item-scene">${esc(r.label)}</div><div class="sched-item-meta">${esc(r.clock)}</div></div>` }));
         return prep.concat(starts).sort((x, y) => (x.min - y.min) || (x.tie - y.tie)).map(x => x.html).join('');
       })()}`;
@@ -8191,7 +8197,7 @@ function openScheduleModal(project, step, sideRight){
         ${morning ? `
           <div class="sched-morning">
             <div class="loc-label" style="margin-top:10px;">Morning schedule — from ${esc(STUDIO_ADDRESS)}</div>
-            ${morningItemsHtml(morning)}
+            ${morningItemsHtml(morning, i)}
           </div>
         ` : `<div class="timeline-hint" style="margin-top:8px;">Set an arrival time to work out the morning schedule from the studio.</div>`}
         ${groups.length ? `
@@ -8244,7 +8250,7 @@ function openScheduleModal(project, step, sideRight){
             return `
               <div class="loc-label" style="margin-top:14px;">Shooter ${letter} timeline</div>
               <div class="sched-list">
-                ${morning ? morningItemsHtml(morning) : `<div class="timeline-hint">Set an arrival time to work out the morning schedule from the studio.</div>`}
+                ${morning ? morningItemsHtml(morning, i) : `<div class="timeline-hint">Set an arrival time to work out the morning schedule from the studio.</div>`}
                 ${tl.map(g => shooterRowHtml(day, g)).join('')}
                 ${endItemsHtml(morning)}
               </div>`;
@@ -8421,7 +8427,9 @@ function openScheduleModal(project, step, sideRight){
 
       // chronological schedule — every row carries its start (in minutes) so the list is in clock order
       const rows = [];
-      rows.push([m.arriveLocation, 'Arrive at location', '', '', t.arrive]);
+      // the shoot day's location: where the first scene is shot, else the first location listed for the day
+      const arriveLoc = (groups.length && scheduleSceneLocation(project, day.date, groups[0].scene)) || locs[0] || '';
+      rows.push([m.arriveLocation, 'Arrive at location', arriveLoc, '', t.arrive]);
       (m.debriefFirst ? [[m.debriefRange, 'Debrief', m.debriefStartMin], [m.setupRange, 'Equipment set up', m.setupStartMin]] : [[m.setupRange, 'Equipment set up', m.setupStartMin], [m.debriefRange, 'Debrief', m.debriefStartMin]]).forEach(([a, b, mn]) => rows.push([a, b, '', '', mn]));
       m.startRows.forEach(r => rows.push([r.clock, r.label, '', '', r.min + 0.1]));
       const camTxt = g => g.shooter === 'Both' ? 'A & B' : (g.shooter ? g.shooter : '');
@@ -8768,10 +8776,15 @@ function openScheduleModal(project, step, sideRight){
       paint(); persistSchedule();
     }));
     bg.querySelectorAll('[data-swapmorning]').forEach(btn => btn.addEventListener('click', () => {
-      const idx = [...bg.querySelectorAll('.sched-day')].indexOf(btn.closest('.sched-day'));
-      if(idx < 0) return;
+      const idx = parseInt(btn.dataset.swapmorning, 10);
+      if(!days[idx]) return;
       days[idx].debriefFirst = !days[idx].debriefFirst;
+      openMorning = null;
       paint(); persistSchedule();
+    }));
+    bg.querySelectorAll('[data-editmorning]').forEach(el => el.addEventListener('click', () => {
+      openMorning = openMorning === el.dataset.editmorning ? null : el.dataset.editmorning;
+      paint();
     }));
     bg.querySelectorAll('[data-movescene]').forEach(btn => btn.addEventListener('click', () => {
       const { dayIdx, scene } = parseSceneKey(btn.dataset.movescene);
