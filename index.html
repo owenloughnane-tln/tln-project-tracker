@@ -6989,7 +6989,9 @@ function openShotListModal(project, step, sideRight){
       });
     });
     bg.querySelector('#slSave').addEventListener('click', async () => {
+      const prevRows = step.shotListRows;
       step.shotListRows = rows;
+      applySceneRenames(project, prevRows, rows);
       step.startDate = bg.querySelector('#slStart').value;
       step.endDate = bg.querySelector('#slEnd').value;
       touchStep(step);
@@ -7527,6 +7529,37 @@ function sceneShotSlots(rows){
     slotOf[r.id] = seen[key];
   });
   return { slotOf, count };
+}
+// The schedule remembers a scene's length, set up change, camera and place in the running order by the
+// scene's name. When scenes are renamed in the shot list, carry all of that (and the Location scout entry
+// for it) over to the new name, so the schedule stays exactly as it was.
+function applySceneRenames(project, oldRows, newRows){
+  const oldById = {};
+  (oldRows || []).forEach(r => { oldById[r.id] = r; });
+  const NONE = '(No scene set)';
+  const votes = {};
+  (newRows || []).forEach(r => {
+    const o = oldById[r.id]; if(!o) return;
+    const a = o.scene || NONE, b = r.scene || NONE;
+    if(a !== b){ votes[a] = votes[a] || {}; votes[a][b] = (votes[a][b] || 0) + 1; }
+  });
+  const stillUsed = new Set((newRows || []).map(r => r.scene || NONE));
+  const map = {};
+  Object.keys(votes).forEach(a => {
+    if(stillUsed.has(a)) return; // some shots still sit in that scene — a re-assignment, not a rename
+    const best = Object.entries(votes[a]).sort((x, y) => y[1] - x[1])[0][0];
+    if(best !== NONE) map[a] = best;
+  });
+  if(!Object.keys(map).length) return false;
+  const renameKeys = obj => { if(!obj) return; Object.keys(map).forEach(a => { if(a in obj && !(map[a] in obj)){ obj[map[a]] = obj[a]; } if(a in obj) delete obj[a]; }); };
+  (project.steps || []).forEach(st => {
+    (st.scheduleDays || []).forEach(d => {
+      renameKeys(d.sceneMinutes); renameKeys(d.setupChanges); renameKeys(d.sceneShooter);
+      if(Array.isArray(d.sceneOrder)) d.sceneOrder = d.sceneOrder.map(n => map[n] || n);
+    });
+    (st.locationRows || []).forEach(lr => (lr.entries || []).forEach(en => { if(en.scene && map[en.scene]) en.scene = map[en.scene]; }));
+  });
+  return true;
 }
 function scheduleRelevantRows(project, date){
   const shotStep = (project.steps || []).find(isShotListStep);
@@ -8284,7 +8317,7 @@ function openScheduleModal(project, step, sideRight){
       doc.setLineWidth(0.5);
     }
     function header(){
-      const lh = 14;
+      const lh = 16.8;
       drawLogo(M, y, lh);
       const lw = lh * 900 / 748;
       if(wordmark){ const wh = lh * 0.88; doc.addImage(wordmark.url, 'JPEG', M + lw + 8, y + (lh - wh) / 2, wh * wordmark.ratio, wh); }
