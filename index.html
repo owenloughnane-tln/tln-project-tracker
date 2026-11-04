@@ -7701,7 +7701,13 @@ function allocateScenes(day, groups){
 
   // each unit's own numbers: time that is already decided (custom minutes + changes), the shot
   // weight that competes for the rest, and the least it can be squeezed to
-  const info = units.map(u => {
+  // how many ticks before shooting starts a camera begins its first scene (set on the day)
+  const earlyTicks = key => {
+    const v = (day.early || {})[key]; if(!v) return 0;
+    const m = r5(schedToMin(v));
+    return (m >= t.arrive && m < t.shootStart) ? ws - tk(m) : 0;
+  };
+  const info = units.map((u, ui) => {
     const lanes = Object.keys(u.lanes).map(key => {
       const list = u.lanes[key];
       let fixed = 0, w = 0, nFlex = 0;
@@ -7710,11 +7716,11 @@ function allocateScenes(day, groups){
         if(c) fixed += tk(c); else { w += g.count; nFlex++; }
         const ch = changeAfter(g); if(ch !== null) fixed += tk(ch);
       });
-      return { key, list, fixed, w, nFlex };
+      return { key, list, fixed, w, nFlex, eff: Math.max(0, fixed - (ui === 0 && u.type === 'par' ? earlyTicks(key) : 0)) };
     });
-    const base = Math.max(0, ...lanes.map(l => l.fixed));
+    const base = Math.max(0, ...lanes.map(l => l.eff));
     const W = Math.max(0, ...lanes.map(l => l.w));
-    const minD = Math.max(0, ...lanes.map(l => l.fixed + l.nFlex));
+    const minD = Math.max(0, ...lanes.map(l => l.eff + l.nFlex));
     return { u, lanes, base, W, minD };
   });
   const totalBase = info.reduce((s, x) => s + x.base, 0);
@@ -7781,6 +7787,7 @@ function allocateScenes(day, groups){
     const segUnits = grp.units;
     // work-time offset within this group → clock tick (skipping over the blocks between its pieces)
     const at = (off, isEnd) => {
+      if(off < 0) return grp.pieces[0].s + off; // before the group's first tick: during set up / debrief
       let rem = off;
       for(let q = 0; q < grp.pieces.length; q++){
         const p = grp.pieces[q], l = p.e - p.s;
@@ -7808,13 +7815,19 @@ function allocateScenes(day, groups){
       const D = fit < 1 ? Math.max(1, ...x.lanes.map(l => laneFixedS(l) + l.nFlex)) : (x.base + (wSum ? flex[k] : 0) || x.minD);
       const unit = x.u;
       const unitStart = cursor, unitEnd = cursor + D;
+      // a camera can start before shooting does (during set up or debrief): set per camera on the day
+      const earlyOf = key => {
+        if(!(k === 0 && grp.pieces[0].s === ws && unit.type === 'par')) return 0;
+        return earlyTicks(key);
+      };
       const laneItems = {};
       x.lanes.forEach(l => {
         laneItems[l.key] = [];
         const flexList = l.list.filter(g => !customOf(g));
-        const avail = Math.max(D - (fit < 1 ? laneFixedS(l) : l.fixed), flexList.length);
+        const e0 = earlyOf(l.key);
+        const avail = Math.max(D + e0 - (fit < 1 ? laneFixedS(l) : l.fixed), flexList.length);
         const alloc = splitTicks(avail, flexList.map(g => g.count), flexList.map(() => 1));
-        let c = unitStart, fi = 0;
+        let c = unitStart - e0, fi = 0;
         l.list.forEach(g => {
           const cu = customOf(g);
           const dT = cu ? sq(tk(cu)) : alloc[fi++];
@@ -7831,7 +7844,8 @@ function allocateScenes(day, groups){
           }
         });
       });
-      entries.push({ kind:'unit', unit, lanes: laneItems, startMin: at(unitStart, false) * T, endMin: at(unitEnd, true) * T, sortAt: at(unitStart, false) });
+      const eMax = Math.max(0, ...x.lanes.map(l => earlyOf(l.key)));
+      entries.push({ kind:'unit', unit, lanes: laneItems, startMin: at(unitStart - eMax, false) * T, endMin: at(unitEnd, true) * T, sortAt: at(unitStart - eMax, false) });
       cursor = unitEnd;
     });
     if(cursor > len) overTicks += cursor - len;
@@ -7855,7 +7869,7 @@ function openScheduleModal(project, step, sideRight){
   const savedByDate = {};
   (step.scheduleDays || []).forEach(d => { if(d.date){ migrateScheduleDay(d); savedByDate[d.date] = d; } });
   const days = shootDates.length
-    ? shootDates.map(d => Object.assign({ date:d, start:'', end:'', driveMinutes:'', uber:false, lunch:false, lunchStart:'', lunchMinutes:'60', others:[], times:[], crewTimes:{}, sceneShooter:{}, sceneOrder:[], setupMinutes:'45', debriefMinutes:'15', packMinutes:'', sceneMinutes:{}, setupChanges:{}, v2:true }, savedByDate[d] || {}))
+    ? shootDates.map(d => Object.assign({ date:d, start:'', end:'', driveMinutes:'', uber:false, lunch:false, lunchStart:'', lunchMinutes:'60', others:[], times:[], crewTimes:{}, sceneShooter:{}, sceneOrder:[], early:{}, setupMinutes:'45', debriefMinutes:'15', packMinutes:'', sceneMinutes:{}, setupChanges:{}, v2:true }, savedByDate[d] || {}))
     : (step.scheduleDays && step.scheduleDays.length ? JSON.parse(JSON.stringify(step.scheduleDays)) : []);
   days.forEach(d => {
     migrateScheduleDay(d);
@@ -7864,6 +7878,7 @@ function openScheduleModal(project, step, sideRight){
     if(!d.crewTimes) d.crewTimes = {};
     if(!d.sceneShooter) d.sceneShooter = {};
     if(!d.sceneOrder) d.sceneOrder = [];
+    if(!d.early) d.early = {};
     if(d.setupMinutes === undefined) d.setupMinutes = '45';
     if(d.debriefMinutes === undefined) d.debriefMinutes = '15';
     if(d.packMinutes === undefined) d.packMinutes = '';
@@ -7898,8 +7913,9 @@ function openScheduleModal(project, step, sideRight){
     return {
       leaveStudio: c(t.arrive - driveMin),
       arriveLocation: c(t.arrive),
-      setupRange: `${c(t.arrive)} – ${c(t.setupEnd)}`,
-      debriefRange: `${c(t.setupEnd)} – ${c(t.shootStart)}`,
+      debriefFirst: !!day.debriefFirst,
+      setupRange: day.debriefFirst ? `${c(t.arrive + t.debriefMins)} – ${c(t.shootStart)}` : `${c(t.arrive)} – ${c(t.setupEnd)}`,
+      debriefRange: day.debriefFirst ? `${c(t.arrive)} – ${c(t.arrive + t.debriefMins)}` : `${c(t.setupEnd)} – ${c(t.shootStart)}`,
       startClock: c(t.shootStart),
       driveMin,
       end: t.shootEnd === null ? null : {
@@ -7914,8 +7930,8 @@ function openScheduleModal(project, step, sideRight){
       <div class="sched-item"><div class="sched-item-scene">Leave studio</div><div class="sched-item-meta">${esc(morning.leaveStudio)}</div></div>
       ${morning.driveMin > 0 ? `<div class="sched-item sched-drive"><div class="sched-item-scene">Driving</div><div class="sched-item-meta">${morning.driveMin} min</div></div>` : ''}
       <div class="sched-item"><div class="sched-item-scene">Arrive at location</div><div class="sched-item-meta">${esc(morning.arriveLocation)}</div></div>
-      <div class="sched-item"><div class="sched-item-scene">Equipment set up</div><div class="sched-item-meta">${esc(morning.setupRange)}</div></div>
-      <div class="sched-item"><div class="sched-item-scene">Debrief</div><div class="sched-item-meta">${esc(morning.debriefRange)}</div></div>
+      ${(morning.debriefFirst ? ['debrief', 'setup'] : ['setup', 'debrief']).map((w, wi) => `
+      <div class="sched-item"><div class="sched-item-scene">${w === 'setup' ? 'Equipment set up' : 'Debrief'}</div><div class="sched-item-meta"><button type="button" class="mo-btn" data-swapmorning="1" title="${wi === 0 ? 'Do this second instead' : 'Do this first instead'}" style="margin-right:8px;">${wi === 0 ? '▼' : '▲'}</button>${esc(w === 'setup' ? morning.setupRange : morning.debriefRange)}</div></div>`).join('')}
       <div class="sched-item"><div class="sched-item-scene">Start shooting</div><div class="sched-item-meta">${esc(morning.startClock)}</div></div>`;
   }
   function endItemsHtml(morning){
@@ -8037,7 +8053,12 @@ function openScheduleModal(project, step, sideRight){
           <option value="yes" ${val==='yes'?'selected':''}>Shoot at the same time, in different places</option>
           <option value="no" ${val==='no'?'selected':''}>One after another</option>
         </select>
-        <div class="timeline-hint" style="margin:4px 0 0;">Set a scene to "Both cameras" to bring A and B back together — the timeline syncs there.</div>`;
+        <div class="timeline-hint" style="margin:4px 0 0;">Set a scene to "Both cameras" to bring A and B back together — the timeline syncs there.</div>
+        <div class="budget-op-fields" style="margin-top:8px;">
+          <div class="budget-op-field"><label>Camera A starts at</label>${timeFieldHtml('schedtime-early-' + i + '-A', (day.early || {}).A)}</div>
+          <div class="budget-op-field"><label>Camera B starts at</label>${timeFieldHtml('schedtime-early-' + i + '-B', (day.early || {}).B)}</div>
+        </div>
+        <div class="timeline-hint" style="margin:4px 0 0;">Optional: a camera can start its first scene before shooting does, while set up or debrief is happening. You can also just edit that scene's start time.</div>`;
   }
 
   // one scene: tap it to edit its start / end, length and camera (the other scenes then share what's left)
@@ -8320,8 +8341,10 @@ function openScheduleModal(project, step, sideRight){
       const lh = 16.8;
       drawLogo(M, y, lh);
       const lw = lh * 900 / 748;
-      if(wordmark){ const wh = lh * 0.88; doc.addImage(wordmark.url, 'JPEG', M + lw + 8, y + (lh - wh) / 2, wh * wordmark.ratio, wh); }
-      else { y += 14; text('twolastnames', M + lw + 8, 12, 'bold'); y -= 14; }
+      // same proportions as the tracker's top left: 22px logo, 17px bold name, 8px gap (the image is 94 canvas-px tall for a 120px font)
+      const gap = lh * 8 / 22;
+      if(wordmark){ const wh = (lh * 17 / 22) * 94 / 120; doc.addImage(wordmark.url, 'JPEG', M + lw + gap, y + (lh - wh) / 2, wh * wordmark.ratio, wh); }
+      else { y += lh * 0.8; text('twolastnames', M + lw + lh * 8 / 22, lh * 17 / 22, 'bold'); y -= lh * 0.8; }
       y += 9; text('CALL SHEET', PW - M, 9, 'bold', 110, { align:'right' }); y -= 9;
       y += lh + 10;
       doc.setDrawColor(190); doc.line(M, y, PW - M, y); y += 24;
@@ -8381,8 +8404,7 @@ function openScheduleModal(project, step, sideRight){
       // chronological schedule
       const rows = [];
       rows.push([m.arriveLocation, 'Arrive at location', '', '']);
-      rows.push([m.setupRange, 'Equipment set up', '', '']);
-      rows.push([m.debriefRange, 'Debrief', '', '']);
+      (m.debriefFirst ? [[m.debriefRange, 'Debrief'], [m.setupRange, 'Equipment set up']] : [[m.setupRange, 'Equipment set up'], [m.debriefRange, 'Debrief']]).forEach(([a, b]) => rows.push([a, b, '', '']));
       rows.push([m.startClock, 'Start shooting', '', '']);
       const camTxt = g => g.shooter === 'Both' ? 'A & B' : (g.shooter ? g.shooter : '');
       alloc.timeline.forEach(en => {
@@ -8467,6 +8489,18 @@ function openScheduleModal(project, step, sideRight){
     }
     if(newMin < item.startMin - 12*60 && wraps) newMin += 24*60;
     if(newMin === item.startMin) return;
+    // the first scene of a camera in a parallel opening stage can start during set up / debrief
+    {
+      const en0 = alloc.timeline.find(e => e.kind === 'unit');
+      if(tt && en0 && en0.unit.type === 'par'){
+        const key = ['A', 'B'].find(L => (en0.lanes[L] || [])[0] && (en0.lanes[L][0].scene === scene));
+        if(key){
+          if(newMin < tt.shootStart && newMin >= tt.arrive){ if(!day.early) day.early = {}; day.early[key] = minutesToHHMM(newMin); return; }
+          if(newMin >= tt.shootStart && day.early && day.early[key]){ delete day.early[key]; return; }
+          if(newMin < tt.arrive){ showToast(`That's before you arrive (${minutesToClock(tt.arrive)})`, true); return; }
+        }
+      }
+    }
     // what sits directly before this period
     let pred = null, found = false;
     const tl = alloc.timeline;
@@ -8592,6 +8626,13 @@ function openScheduleModal(project, step, sideRight){
         let m;
         if((m = id.match(/^schedtime-(start|end|lunchstart)-(\d+)$/))){
           days[parseInt(m[2],10)][{ start:'start', end:'end', lunchstart:'lunchStart' }[m[1]]] = val ? minutesToHHMM(r5(schedToMin(val))) : '';
+        } else if((m = id.match(/^schedtime-early-(\d+)-([AB])$/))){
+          const d = days[parseInt(m[1],10)];
+          if(!d.early) d.early = {};
+          const v = val ? minutesToHHMM(r5(schedToMin(val))) : '';
+          const tt = dayTimings(d);
+          if(v && tt && (schedToMin(v) < tt.arrive || schedToMin(v) >= tt.shootStart)){ showToast(`Pick a time between arriving (${minutesToClock(tt.arrive)}) and when shooting starts (${minutesToClock(tt.shootStart)})`, true); }
+          else if(v) d.early[m[2]] = v; else delete d.early[m[2]];
         } else if((m = id.match(/^schedtime-fx-(\d+)-(\d+)$/))){
           days[parseInt(m[1],10)].times[parseInt(m[2],10)].time = val ? minutesToHHMM(r5(schedToMin(val))) : '';
         } else if((m = id.match(/^schedtime-fxend-(\d+)-(\d+)$/))){
@@ -8705,6 +8746,12 @@ function openScheduleModal(project, step, sideRight){
     bg.querySelectorAll('[data-parallel]').forEach(el => el.addEventListener('change', () => {
       const d = days[parseInt(el.dataset.parallel,10)];
       if(el.value === 'yes') d.parallel = true; else if(el.value === 'no') d.parallel = false; else delete d.parallel;
+      paint(); persistSchedule();
+    }));
+    bg.querySelectorAll('[data-swapmorning]').forEach(btn => btn.addEventListener('click', () => {
+      const idx = [...bg.querySelectorAll('.sched-day')].indexOf(btn.closest('.sched-day'));
+      if(idx < 0) return;
+      days[idx].debriefFirst = !days[idx].debriefFirst;
       paint(); persistSchedule();
     }));
     bg.querySelectorAll('[data-movescene]').forEach(btn => btn.addEventListener('click', () => {
