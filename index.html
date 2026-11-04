@@ -9685,10 +9685,32 @@ async function loadEntities(){
   }catch(e){ ENTITIES = null; }
   if(!ENTITIES){
     ENTITIES = seedData();
+    await seedPyxisCrate();
     await saveEntities();
-  } else if(migrateEntities()){
-    await saveEntities();
+  } else {
+    const migrated = migrateEntities();
+    const seeded = await seedPyxisCrate();
+    if(migrated || seeded) await saveEntities();
   }
+}
+// One-time: adds the "Pyxis Crate" and what lives in it. A marker is saved alongside the equipment list,
+// so if the crate is deleted or changed later it isn't added back.
+async function seedPyxisCrate(){
+  const SEED_KEY = 'gear-seed-pyxis-crate';
+  try{ if(await window.storage.get(SEED_KEY, true)) return false; }catch(e){ return false; }
+  let added = false;
+  if(!ENTITIES.some(e => e.name === 'Pyxis Crate')){
+    const now = new Date().toISOString();
+    const crateId = slugify('Pyxis Crate');
+    ENTITIES.push({ id: crateId, name:'Pyxis Crate', category:'Camera & Cage', type:'crate', parentId:null, tracked:true, qty:1, location:HOME_BASE, updatedAt:now, history:[] });
+    [['Blackmagic Pyxis 6K', 'Camera & Cage'], ['K&F Tripod', 'Tripod & Rigging'], ['6 Inch Monitor', 'Focus & Monitoring'],
+     ['Camera Multitool', 'Tools'], ['USB-C to HDMI Adapter', 'Cables']].forEach(([name, category]) => {
+      ENTITIES.push({ id: slugify(name), name, category, type:'item', parentId:crateId, tracked:false, qty:1, location:HOME_BASE, updatedAt:now, history:[] });
+    });
+    added = true;
+  }
+  try{ await window.storage.set(SEED_KEY, '1', true); }catch(e){}
+  return added;
 }
 async function saveEntities(){
   const json = JSON.stringify(ENTITIES);
