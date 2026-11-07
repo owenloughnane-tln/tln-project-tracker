@@ -9424,7 +9424,7 @@ const GEAR_PRESETS = {
   basic: ['Camera Crate', 'Battery Crate', 'Audio Crate', 'Hard Drive Case', 'Tripod Bag'],
   wedding: ['Camera Crate', 'Battery Crate', 'Hard Drive Case', 'Tripod Bag', 'Gimbal Box', 'Rode Wireless PRO Compact Wireless II'],
 };
-const CATEGORIES = ['Camera & Cage', 'Lenses', 'Storage', 'Power', 'Lighting', 'Tripod & Rigging', 'Gimbal & Stabiliser', 'Focus & Monitoring', 'Cables', 'Audio', 'Tools', 'Photography'];
+const CATEGORIES = ['Camera & Cage', 'Lenses', 'Storage', 'Power', 'Lighting', 'Tripod & Rigging', 'Gimbal & Stabiliser', 'Focus & Monitoring', 'Cables', 'Audio', 'Tools', 'Photography', 'Parallax'];
 
 let ENTITIES = [];
 let gearExpandedCategories = new Set(); // which "not in a crate" category dropdowns are open, persisted across re-renders
@@ -9690,6 +9690,7 @@ async function loadEntities(){
   } else {
     const migrated = migrateEntities();
     const seeded = await seedPyxisCrate();
+    await seedParallaxKit();
     const before = ENTITIES.length;
     ENTITIES = ENTITIES.filter(e => !(e.name === 'K&F Tripod' && e.parentId === 'pyxis-crate'));
     if(migrated || seeded || ENTITIES.length !== before) await saveEntities();
@@ -9713,6 +9714,19 @@ async function seedPyxisCrate(){
   }
   try{ await window.storage.set(SEED_KEY, '1', true); }catch(e){}
   return added;
+}
+// One-time (Nov 2026): Parallax category, red spring clamps, diffusion. Marker is set only after a successful save.
+async function seedParallaxKit(){
+  const SEED_KEY = 'gear-seed-parallax-kit';
+  try{ if(await window.storage.get(SEED_KEY, true)) return false; }catch(e){ return false; }
+  const now = new Date().toISOString();
+  [['10m HDMI Cable','Parallax',1], ['1.5m HDMI Cable','Parallax',1], ['Capture Card','Parallax',2], ['USB-C Dongle','Parallax',1],
+   ['Red Spring Clamp','Tripod & Rigging',3], ['2m x 1.5m Diffusion','Lighting',1]].forEach(([name, category, qty]) => {
+    if(ENTITIES.some(e => e.name === name)) return;
+    ENTITIES.push({ id: slugify(name), name, category, type:'item', parentId:null, tracked:true, qty, location:HOME_BASE, updatedAt:now, history:[] });
+  });
+  if(await saveEntities()){ try{ await window.storage.set(SEED_KEY, '1', true); }catch(e){} }
+  return true;
 }
 async function saveEntities(){
   const json = JSON.stringify(ENTITIES);
