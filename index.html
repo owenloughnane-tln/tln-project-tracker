@@ -9424,7 +9424,8 @@ const GEAR_PRESETS = {
   basic: ['Camera Crate', 'Battery Crate', 'Audio Crate', 'Hard Drive Case', 'Tripod Bag'],
   wedding: ['Camera Crate', 'Battery Crate', 'Hard Drive Case', 'Tripod Bag', 'Gimbal Box', 'Rode Wireless PRO Compact Wireless II'],
 };
-const CATEGORIES = ['Camera & Cage', 'Lenses', 'Storage', 'Power', 'Lighting', 'Tripod & Rigging', 'Gimbal & Stabiliser', 'Focus & Monitoring', 'Cables', 'Audio', 'Tools', 'Photography', 'Parallax'];
+const LASTNAMEFLEX_WARNING = `<div style="margin:8px 0; padding:9px 12px; border:1px solid #d9a441; background:rgba(217,164,65,.12); border-radius:8px; font-family:var(--display); font-size:13px; line-height:1.4;">⚠ lastnameflex needs a V-mount battery to power it. Pack one with the kit.</div>`;
+const CATEGORIES = ['Camera & Cage', 'Lenses', 'Storage', 'Power', 'Lighting', 'Tripod & Rigging', 'Gimbal & Stabiliser', 'Focus & Monitoring', 'Cables', 'Audio', 'Tools', 'Photography', 'Parallax', 'lastnameflex'];
 
 let ENTITIES = [];
 let gearExpandedCategories = new Set(); // which "not in a crate" category dropdowns are open, persisted across re-renders
@@ -9691,6 +9692,7 @@ async function loadEntities(){
     const migrated = migrateEntities();
     const seeded = await seedPyxisCrate();
     await seedParallaxKit();
+    await seedLastnameflexKit();
     const before = ENTITIES.length;
     ENTITIES = ENTITIES.filter(e => !(e.name === 'K&F Tripod' && e.parentId === 'pyxis-crate'));
     if(migrated || seeded || ENTITIES.length !== before) await saveEntities();
@@ -9724,6 +9726,18 @@ async function seedParallaxKit(){
    ['Red Spring Clamp','Tripod & Rigging',3], ['2m x 1.5m Diffusion','Lighting',1]].forEach(([name, category, qty]) => {
     if(ENTITIES.some(e => e.name === name)) return;
     ENTITIES.push({ id: slugify(name), name, category, type:'item', parentId:null, tracked:true, qty, location:HOME_BASE, updatedAt:now, history:[] });
+  });
+  if(await saveEntities()){ try{ await window.storage.set(SEED_KEY, '1', true); }catch(e){} }
+  return true;
+}
+// One-time (Nov 2026): lastnameflex category kit. Marker is set only after a successful save.
+async function seedLastnameflexKit(){
+  const SEED_KEY = 'gear-seed-lastnameflex-kit';
+  try{ if(await window.storage.get(SEED_KEY, true)) return false; }catch(e){ return false; }
+  const now = new Date().toISOString();
+  ['Motor & Start Line Bar','Idler Pulley & End Line Bar','GT2 Belt','Trolley','Controller Box','Metal Rails','Couplers','Rail Supports'].forEach(name => {
+    if(ENTITIES.some(e => e.name === name)) return;
+    ENTITIES.push({ id: slugify(name), name, category:'lastnameflex', type:'item', parentId:null, tracked:true, qty:1, location:HOME_BASE, updatedAt:now, history:[] });
   });
   if(await saveEntities()){ try{ await window.storage.set(SEED_KEY, '1', true); }catch(e){} }
   return true;
@@ -9931,7 +9945,7 @@ function gearRenderList(app){
         ${categoryNames.map(cat => `
           <details class="dropdown-group" data-cat="${esc(cat)}" ${gearExpandedCategories.has(cat) || search ? 'open' : ''}>
             <summary>${esc(cat)} <span class="dropdown-count">${byCategory[cat].length}</span></summary>
-            <div class="dropdown-body">${byCategory[cat]
+            <div class="dropdown-body">${cat === 'lastnameflex' ? LASTNAMEFLEX_WARNING : ''}${byCategory[cat]
               .sort((a,b) => new Date(effectiveUpdatedAt(b)) - new Date(effectiveUpdatedAt(a)))
               .map(gearCardHtml).join('')}</div>
           </details>
@@ -10070,6 +10084,7 @@ function gearRenderDetail(app, e){
       <div class="detail-title" style="flex:1; min-width:0;">
         <h2>${esc(displayName(e))} <button class="icon-btn" id="renameBtn" style="vertical-align:middle;">Edit name</button></h2>
         <div class="status-word ${st}">${st === 'in' ? 'In Studio' : 'Checked Out'} · ${esc(e.category)}${e.type==='crate' ? ' · Crate' : ''}</div>
+        ${e.category === 'lastnameflex' ? LASTNAMEFLEX_WARNING : ''}
       </div>
     </div>
     ${e.type==='item' && e.qty > 1 ? `
