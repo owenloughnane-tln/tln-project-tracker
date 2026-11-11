@@ -7310,6 +7310,38 @@ function openEquipmentPickerModal(day, currentSelections, onSave){
   document.body.appendChild(bg);
   paint();
 }
+// merges the equipment a Foresight (Blender previs) export lists for each shoot day into `byDay`.
+// Foresight names each item as it is called in this gear tracker (the export's "tracker" list), so
+// matching is by exact name; items with no tracker name (set dressing, characters) are skipped, and
+// tracker names that no longer exist here are reported back.
+function mergeForesightEquipment(data, shootDates, byDay){
+  const norm = x => (x || '').trim().toLowerCase();
+  const byName = new Map();
+  ENTITIES.forEach(e => { if(e.type === 'item' && !byName.has(norm(e.name))) byName.set(norm(e.name), e); });
+  const missing = new Set();
+  let added = 0;
+  Object.entries(data.equipment_by_day || {}).forEach(([dayKey, items]) => {
+    const key = String(dayKey).trim();
+    let days;
+    if(shootDates.includes(key)) days = [key];
+    else if(/^\d+$/.test(key) && shootDates[parseInt(key, 10) - 1]) days = [shootDates[parseInt(key, 10) - 1]];
+    else days = shootDates.slice();
+    (items || []).forEach(it => {
+      const names = it.tracker || [];
+      if(!names.length) return;
+      const ent = names.map(nm => byName.get(norm(nm))).find(Boolean);
+      if(!ent){ missing.add(it.name || names[0]); return; }
+      days.forEach(day => {
+        const list = byDay[day] = (byDay[day] || []).map(normalizeEquipEntry);
+        const cur = list.find(x => x.id === ent.id);
+        const qty = it.qty || 1;
+        if(cur){ if(qty > cur.qty){ cur.qty = qty; added++; } }
+        else { list.push({ id: ent.id, qty }); added++; }
+      });
+    });
+  });
+  return { added, missing: [...missing], rental: (data.rental_list || []).map(r => `${r.rental_qty} x ${r.name}`) };
+}
 // per shoot-day equipment lists for a project, kept in sync with the shared gear tracker: saving
 // tags the chosen entities' schedule with "Used in Project" for that day, and clears any stale
 // tags this same project+step had set before (without touching unrelated schedule entries)
@@ -7356,6 +7388,8 @@ function openEquipmentListsModal(project, step, sideRight){
       <div class="modal">
         <h3>Equipment lists</h3>
         ${stepDateRangeFieldHtml(localDates, 'eql')}
+        <button class="btn small" id="eqlForesight" style="width:100%; margin-bottom:10px;">Import from Foresight (previs_export.json)</button>
+        <input type="file" id="eqlForesightFile" accept=".json,application/json" style="display:none;">
         ${shootDates.length ? shootDates.map(dayHtml).join('') : `<p class="empty small">Add shoot days in Edit details first.</p>`}
         <div class="modal-actions">
           <button class="btn ghost" id="eqlCancel" style="flex:1;">Cancel</button>
@@ -7369,6 +7403,22 @@ function openEquipmentListsModal(project, step, sideRight){
 
   function wire(){
     bg.querySelector('#eqlCancel').addEventListener('click', () => bg.remove());
+    bg.querySelector('#eqlForesight').addEventListener('click', () => bg.querySelector('#eqlForesightFile').click());
+    bg.querySelector('#eqlForesightFile').addEventListener('change', async (ev) => {
+      const file = ev.target.files[0];
+      ev.target.value = '';
+      if(!file) return;
+      let data;
+      try{ data = JSON.parse(await file.text()); }catch(e){ showToast("Couldn't read that file as JSON", true); return; }
+      if(!data || !String(data.schema || '').startsWith('foresight-export')){ showToast("That isn't a Foresight export (previs_export.json)", true); return; }
+      if(!shootDates.length){ showToast('Add shoot days in Edit details first', true); return; }
+      const res = mergeForesightEquipment(data, shootDates, byDay);
+      paint();
+      let msg = res.added ? `Added ${res.added} item${res.added === 1 ? '' : 's'} from Foresight — press Save to keep them` : 'Everything from Foresight was already on the list';
+      if(res.missing.length) msg += `. Not in the gear tracker: ${res.missing.join(', ')}`;
+      if(res.rental.length) msg += `. Rental needed: ${res.rental.join(', ')}`;
+      showToast(msg, res.missing.length > 0);
+    });
     bg.querySelectorAll('[data-addeq]').forEach(btn => {
       btn.addEventListener('click', () => {
         const day = btn.dataset.addeq;
